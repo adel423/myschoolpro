@@ -25,7 +25,6 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: var(--sky-bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-
         .login-screen {
             background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm);
             max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto;
@@ -39,7 +38,6 @@
         .login-btn { width: 100%; padding: 12px; border-radius: 25px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin: 6px 0; font-size: 15px; transition: 0.3s; }
         .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
         .link-btn { background: none; border: none; color: var(--primary); cursor: pointer; margin-top: 6px; font-size: 14px; }
-
         #app { display: none; width: 100%; max-width: 500px; height: 100vh; background: white; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; }
         .main-header { padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
         .main-header h2 { font-size: 20px; font-weight: bold; }
@@ -59,7 +57,6 @@
         .chat-header { padding: 10px; display: flex; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
         .chat-header img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
         .messages-container { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #fff; }
-
         .message { max-width: 75%; position: relative; }
         .message.sent { align-self: flex-end; }
         .message.received { align-self: flex-start; }
@@ -67,32 +64,21 @@
         .sent .bubble { background: var(--bubble-sent); color: var(--bubble-text-sent); border-bottom-right-radius: 4px; }
         .received .bubble { background: var(--bubble-received); color: var(--bubble-text-received); border-bottom-left-radius: 4px; }
         .msg-time {
-            font-size: 10px;
-            margin-top: 3px;
-            padding: 0 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
+            font-size: 10px; margin-top: 3px; padding: 0 4px;
+            display: flex; align-items: center; justify-content: space-between; gap: 6px;
         }
         .sent .msg-time { color: rgba(255,255,255,0.9); flex-direction: row-reverse; }
         .received .msg-time { color: #65676b; }
         .delete-msg-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 11px;
-            padding: 2px 5px;
-            border-radius: 10px;
-            transition: 0.2s;
+            background: none; border: none; cursor: pointer; font-size: 11px;
+            padding: 2px 5px; border-radius: 10px; transition: 0.2s;
         }
         .sent .delete-msg-btn { color: rgba(255,255,255,0.7); }
         .received .delete-msg-btn { color: #999; }
         .delete-msg-btn:hover { background: rgba(0,0,0,0.1); }
-
         .input-area { padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #eee; flex-shrink: 0; background: white; }
-        .input-wrapper { flex: 1; background: #f0f2f5; border-radius: 25px; padding: 6px 15px; }
-        .input-wrapper input { width: 100%; border: none; background: transparent; outline: none; font-size: 14px; }
+        .input-wrapper { flex: 1; background: #f0f2f5; border-radius: 25px; padding: 6px 15px; display: flex; align-items: center; }
+        .input-wrapper input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; }
         .bottom-nav { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #eee; background: white; flex-shrink: 0; }
         .nav-item { cursor: pointer; text-align: center; transition: 0.2s; padding: 4px 12px; border-radius: 20px; }
         .nav-item.active { color: var(--primary); background: var(--primary-light); }
@@ -103,10 +89,15 @@
         .incoming-call { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; border-radius: 20px; padding: 15px; z-index: 2000; display: none; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         .settings-modal .option-btn { display: block; width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; background: white; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.2s; }
         .settings-modal .option-btn:hover { background: #f5f5f5; }
+        .file-link {
+            color: var(--primary); text-decoration: none; word-break: break-all;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .file-link i { margin-left: 5px; }
     </style>
 </head>
 <body>
-<!-- ... (نفس محتوى الجسم بالضبط دون تغيير) ... -->
+<!-- نفس هيكل صفحة الدخول بدون تغيير -->
 <div id="loginScreen" class="login-screen">
     <h1 style="color:var(--primary);">Messenger Pro</h1>
     <p style="color:var(--text-muted);">نظام تواصل المؤسسة الذكي</p>
@@ -166,18 +157,24 @@
             <img id="chatHeaderImg">
             <div style="flex:1; margin-right:10px;"><strong id="chatHeaderName"></strong><div id="typingIndicator" style="font-size:11px;color:var(--online-dot);display:none;">يكتب الآن...</div></div>
             <i class="fas fa-phone-alt" id="callAudioBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: var(--primary);"></i>
-            <i class="fas fa-video" id="callVideoBtn" style="cursor:pointer; font-size:18px; color: var(--primary);"></i>
-            <i class="fas fa-trash-alt" id="deleteAllBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: #d32f2f; display:none;" title="حذف جميع الرسائل"></i>
+            <i class="fas fa-video" id="callVideoBtn" style="cursor:pointer; font-size:18px; color: var(--primary); margin-left: 15px;"></i>
+            <!-- زر حذف جميع الرسائل بمسافة مناسبة -->
+            <i class="fas fa-trash-alt" id="deleteAllBtn" style="cursor:pointer; font-size:18px; color: #d32f2f; display:none;" title="حذف جميع الرسائل"></i>
         </div>
         <div class="messages-container" id="messagesContainer"></div>
         <div class="input-area">
-            <i class="fas fa-plus-circle" id="pickImageBtn" style="color: var(--primary); font-size: 22px; cursor:pointer;"></i>
+            <!-- زر رفع الملفات -->
+            <label for="fileInput" style="cursor:pointer; color: var(--primary); font-size: 22px; display: flex; align-items: center;" title="إرفاق ملف">
+                <i class="fas fa-paperclip"></i>
+            </label>
+            <input type="file" id="fileInput" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.bmp" onchange="handleFileUpload(event)">
             <div class="input-wrapper"><input type="text" id="msgInput" placeholder="اكتب رسالة..."></div>
             <i class="fas fa-paper-plane" id="sendBtn" style="color:var(--primary); font-size:22px; cursor:pointer;"></i>
         </div>
     </div>
 </div>
 
+<!-- باقي الواجهات دون تغيير -->
 <div id="callOverlay" class="call-overlay">
     <div id="callPartnerName" style="font-size:24px;"></div>
     <div id="callStatus" style="margin:10px 0;">جاري الاتصال...</div>
@@ -280,10 +277,7 @@ function getAvatarUrl(empId) {
     if (emp) return `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=2c2c2e&color=fff&size=100`;
     return 'https://ui-avatars.com/api/?name=User&background=2c2c2e&color=fff&size=100';
 }
-function promptChangeAvatar() {
-    if (!currentUser) return;
-    document.getElementById('avatarFileInput').click();
-}
+function promptChangeAvatar() { if (!currentUser) return; document.getElementById('avatarFileInput').click(); }
 window.changeAvatar = function(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -330,37 +324,24 @@ async function deleteMessage(msgId) {
 
 // ======================= حذف جميع رسائل المحادثة الحالية (للمدير) =======================
 async function deleteAllMessages() {
-    if (!isDirector()) {
-        showNotif('غير مصرح لك بهذه العملية', '⛔');
-        return;
-    }
-    if (!currentChatId) {
-        showNotif('لا توجد محادثة مفتوحة', '❓');
-        return;
-    }
-
+    if (!isDirector()) { showNotif('غير مصرح لك بهذه العملية', '⛔'); return; }
+    if (!currentChatId) { showNotif('لا توجد محادثة مفتوحة', '❓'); return; }
     if (!confirm('هل أنت متأكد من حذف جميع رسائل هذه المحادثة؟ لا يمكن التراجع عن ذلك.')) return;
 
-    const { error } = await supabaseClient
-        .from('messages')
-        .delete()
-        .eq('chat_id', currentChatId);
+    // حذف الملفات المرتبطة من التخزين أولاً
+    try {
+        const { data: files } = await supabaseClient.storage.from('chat-files').list(currentChatId);
+        if (files && files.length > 0) {
+            const fileNames = files.map(f => `${currentChatId}/${f.name}`);
+            await supabaseClient.storage.from('chat-files').remove(fileNames);
+        }
+    } catch (e) {}
 
-    if (error) {
-        showNotif('فشل في حذف الرسائل: ' + error.message, '❌');
-        return;
-    }
-
-    document.getElementById('messagesContainer').innerHTML = 
-        '<div style="text-align:center;margin-top:50px;color:gray;">تم حذف جميع الرسائل 🗑️</div>';
-
-    if (unreadCounts[currentChatId]) {
-        delete unreadCounts[currentChatId];
-        localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
-    }
-
-    renderChatsList();
-    showNotif('تم حذف جميع الرسائل بنجاح', '✅');
+    const { error } = await supabaseClient.from('messages').delete().eq('chat_id', currentChatId);
+    if (error) { showNotif('فشل في حذف الرسائل: ' + error.message, '❌'); return; }
+    document.getElementById('messagesContainer').innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">تم حذف جميع الرسائل 🗑️</div>';
+    if (unreadCounts[currentChatId]) { delete unreadCounts[currentChatId]; localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); }
+    renderChatsList(); showNotif('تم حذف جميع الرسائل بنجاح', '✅');
 }
 
 // ======================= تحميل الموظفين =======================
@@ -378,10 +359,15 @@ async function loadEmployees() {
                     const idx = allEmployees.findIndex(e=>e.id===supEmp.id);
                     if (idx>=0) {
                         if (supEmp.avatar_url) localStorage.setItem(`avatar_${supEmp.id}`, supEmp.avatar_url);
-                    } else {
-                        allEmployees.push(supEmp);
-                    }
+                    } else { allEmployees.push(supEmp); }
                 }
+            }
+        } catch(e) {}
+        // إنشاء دلو الملفات تلقائياً إذا لم يكن موجوداً
+        try {
+            const { data: buckets } = await supabaseClient.storage.listBuckets();
+            if (!buckets?.find(b => b.name === 'chat-files')) {
+                await supabaseClient.storage.createBucket('chat-files', { public: true });
             }
         } catch(e) {}
         checkAutoLogin();
@@ -424,7 +410,6 @@ document.getElementById('setPasswordBtn').onclick = ()=>{
 };
 document.getElementById('backToSearch1').onclick = ()=>{ document.getElementById('credentialsPhase').style.display='none'; document.getElementById('searchPhase').style.display='block'; };
 document.getElementById('backToSearch2').onclick = ()=>{ document.getElementById('passwordPhase').style.display='none'; document.getElementById('searchPhase').style.display='block'; };
-
 function checkAutoLogin() {
     const remembered = getRememberedUser();
     if (remembered) {
@@ -440,9 +425,7 @@ async function startApp() {
     await initChannels(); initPresence(); initSignaling();
     renderStories(); renderChatsList();
     showNotif(`👋 أهلاً ${currentUser.name}`);
-    if (isDirector()) {
-        document.getElementById('adminPanelBtn').style.display = 'block';
-    }
+    if (isDirector()) document.getElementById('adminPanelBtn').style.display = 'block';
 }
 
 // ======================= القنوات =======================
@@ -452,20 +435,11 @@ async function initChannels() {
         const msg = payload.new;
         if(activeChat) {
             const cid = activeChat.id==='group'?'group':[currentUser.id, activeChat.id].sort().join('_');
-            if(msg.chat_id===cid) {
-                await fetchMessages(cid);
-            } else if(msg.sender!==currentUser.id) {
-                incrementUnread(msg.chat_id, msg.sender);
-            }
-        } else if(msg.sender!==currentUser.id) {
-            incrementUnread(msg.chat_id, msg.sender);
-        }
+            if(msg.chat_id===cid) { await fetchMessages(cid); }
+            else if(msg.sender!==currentUser.id) { incrementUnread(msg.chat_id, msg.sender); }
+        } else if(msg.sender!==currentUser.id) { incrementUnread(msg.chat_id, msg.sender); }
         renderChatsList();
-        if(msg.sender!==currentUser.id) { 
-            playTone('message'); 
-            const s=allEmployees.find(e=>e.id===msg.sender); 
-            showNotif(`📩 رسالة جديدة من ${s?.name||'شخص'}`);
-        }
+        if(msg.sender!==currentUser.id) { playTone('message'); const s=allEmployees.find(e=>e.id===msg.sender); showNotif(`📩 رسالة جديدة من ${s?.name||'شخص'}`); }
     })
     .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages'}, payload=>{
         const deletedId = payload.old.id;
@@ -507,16 +481,11 @@ function initSignaling() {
 // ======================= واجهات =======================
 function renderStories() {
     const c = document.getElementById('storiesContainer');
-    let html = `<div class="online-user" onclick="promptChangeAvatar()" title="انقر لتغيير الصورة">
-        <img src="${getAvatarUrl(currentUser.id)}" class="story-avatar">
-        <div class="active-dot" style="background:var(--primary);"></div>
-        <span style="font-size:11px;">حسابي</span>
-    </div>`;
+    let html = `<div class="online-user" onclick="promptChangeAvatar()" title="انقر لتغيير الصورة"><img src="${getAvatarUrl(currentUser.id)}" class="story-avatar"><div class="active-dot" style="background:var(--primary);"></div><span style="font-size:11px;">حسابي</span></div>`;
     const online = allEmployees.filter(e=> e.id!==currentUser.id && onlineUsers.has(e.id));
     html += online.length ? online.map(e=>`<div class="online-user" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatarUrl(e.id)}" class="story-avatar"><div class="active-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`).join('') : '<div style="padding:10px;color:gray;font-size:13px;">لا متصلين حالياً</div>';
     c.innerHTML = html;
 }
-
 async function renderChatsList() {
     const container = document.getElementById('chatsList');
     const activeList = getActiveChats();
@@ -551,9 +520,7 @@ window.openChat = async (id, name) => {
     document.getElementById('chatHeaderName').innerText = name;
     document.getElementById('chatHeaderImg').src = getAvatarUrl(id);
     const deleteAllBtn = document.getElementById('deleteAllBtn');
-    if (deleteAllBtn) {
-        deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
-    }
+    if (deleteAllBtn) deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
     document.getElementById('mainView').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
     document.getElementById('callsScreen').style.display = 'none';
@@ -561,8 +528,7 @@ window.openChat = async (id, name) => {
     renderChatsList();
 };
 document.getElementById('closeChatBtn').onclick = ()=>{
-    activeChat = null;
-    currentChatId = null;
+    activeChat = null; currentChatId = null;
     document.getElementById('chatScreen').style.display = 'none';
     document.getElementById('mainView').style.display = 'flex';
     document.getElementById('typingIndicator').style.display = 'none';
@@ -579,14 +545,82 @@ async function fetchMessages(chatId) {
         if(activeChat.id==='group' && !isMine) { const s = allEmployees.find(e=>e.id===m.sender); if(s) senderName = `<div style="font-size:11px;color:var(--primary);margin-bottom:3px;font-weight:bold;">${s.name}</div>`; }
         const canDelete = isMine || isDirector();
         const deleteBtn = canDelete ? `<button class="delete-msg-btn" onclick="deleteMessage('${m.id}')" title="حذف"><i class="fas fa-trash-alt"></i></button>` : '';
+        
+        // معالجة محتوى الرسالة (نص أو ملف)
+        let content = '';
+        if (m.file_url) {
+            const fileName = m.file_name || 'ملف';
+            const fileIcon = getFileIcon(fileName);
+            content = `<a href="${m.file_url}" target="_blank" class="file-link" style="color: var(--bubble-${isMine?'text-sent':'text-received'});">${fileIcon} ${fileName}</a>`;
+            if (m.text) content += `<div style="margin-top:4px;">${m.text}</div>`;
+        } else {
+            content = `<div>${m.text}</div>`;
+        }
+        
         return `<div class="message ${isMine?'sent':'received'}" data-msg-id="${m.id}">
             ${senderName}
-            <div class="bubble">${m.text}</div>
+            <div class="bubble">${content}</div>
             <div class="msg-time"><span>${timeStr}</span>${deleteBtn}</div>
         </div>`;
     }).join('');
     scrollToBottom();
 }
+function getFileIcon(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (['jpg','jpeg','png','gif','bmp'].includes(ext)) return '<i class="fas fa-file-image"></i>';
+    if (ext === 'pdf') return '<i class="fas fa-file-pdf"></i>';
+    if (['doc','docx'].includes(ext)) return '<i class="fas fa-file-word"></i>';
+    if (['xls','xlsx'].includes(ext)) return '<i class="fas fa-file-excel"></i>';
+    return '<i class="fas fa-file"></i>';
+}
+
+// رفع الملفات
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!currentChatId) return;
+    
+    // الحد الأقصى للحجم 20 ميجا
+    if (file.size > 20 * 1024 * 1024) {
+        showNotif('حجم الملف كبير جداً. الحد الأقصى 20 ميجابايت', '❌');
+        return;
+    }
+    
+    showNotif('جاري رفع الملف...', '⏳');
+    const filePath = `${currentChatId}/${Date.now()}_${file.name}`;
+    const { data, error } = await supabaseClient.storage.from('chat-files').upload(filePath, file, { cacheControl: '3600', upsert: true });
+    
+    if (error) {
+        showNotif('فشل رفع الملف: ' + error.message, '❌');
+        return;
+    }
+    
+    const { data: urlData } = supabaseClient.storage.from('chat-files').getPublicUrl(filePath);
+    const fileUrl = urlData.publicUrl;
+    
+    // إرسال رسالة تحتوي على رابط الملف
+    const msgText = document.getElementById('msgInput').value.trim();
+    const messagePayload = {
+        chat_id: currentChatId,
+        sender: currentUser.id,
+        text: msgText || '(ملف)',
+        file_url: fileUrl,
+        file_name: file.name,
+        created_at: new Date().toISOString()
+    };
+    
+    const { error: insertError } = await supabaseClient.from('messages').insert(messagePayload);
+    if (insertError) {
+        showNotif('فشل حفظ الرسالة', '❌');
+    } else {
+        document.getElementById('msgInput').value = '';
+        await fetchMessages(currentChatId);
+        renderChatsList();
+    }
+    // إعادة تعيين حقل الملف
+    document.getElementById('fileInput').value = '';
+}
+
 async function sendMessage() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
@@ -594,11 +628,7 @@ async function sendMessage() {
     const chatId = activeChat.id==='group'?'group':[currentUser.id, activeChat.id].sort().join('_');
     addToActiveChats(chatId);
     const { error } = await supabaseClient.from('messages').insert({ chat_id: chatId, sender: currentUser.id, text, created_at: new Date().toISOString() });
-    if (!error) {
-        input.value = '';
-        await fetchMessages(chatId);
-        renderChatsList();
-    }
+    if (!error) { input.value = ''; await fetchMessages(chatId); renderChatsList(); }
 }
 document.getElementById('sendBtn').onclick = sendMessage;
 document.getElementById('msgInput').onkeydown = (e) => {
@@ -610,60 +640,7 @@ document.getElementById('msgInput').onkeydown = (e) => {
     }
 };
 
-// ======================= المكالمات =======================
-// إضافة معالج الضوضاء مع استئناف AudioContext إجباري
-async function applyNoiseGate(originalStream) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    // استئناف السياق الصوتي (ضروري جداً لتمرير الصوت)
-    if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-    }
-    
-    const source = audioContext.createMediaStreamSource(originalStream);
-    const destination = audioContext.createMediaStreamDestination();
-    
-    const bufferSize = 4096;
-    const threshold = 0.01;
-    let gainNode = audioContext.createGain();
-    gainNode.gain.value = 0;
-    
-    const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
-    let smoothedLevel = 0;
-    const attackTime = 0.95, releaseTime = 0.95;
-    
-    processor.onaudioprocess = function(e) {
-        const input = e.inputBuffer.getChannelData(0);
-        let sum = 0;
-        for (let i = 0; i < bufferSize; i++) {
-            sum += Math.abs(input[i]);
-        }
-        const rms = Math.sqrt(sum / bufferSize);
-        
-        if (rms > smoothedLevel) {
-            smoothedLevel = rms * (1 - attackTime) + smoothedLevel * attackTime;
-        } else {
-            smoothedLevel = rms * (1 - releaseTime) + smoothedLevel * releaseTime;
-        }
-        
-        if (smoothedLevel > threshold) {
-            gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.05);
-        } else {
-            gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
-        }
-    };
-    
-    source.connect(processor);
-    processor.connect(gainNode);
-    gainNode.connect(destination);
-    
-    const processedStream = new MediaStream();
-    destination.stream.getAudioTracks().forEach(track => processedStream.addTrack(track));
-    originalStream.getVideoTracks().forEach(track => processedStream.addTrack(track));
-    
-    processedStream._audioContext = audioContext;
-    return processedStream;
-}
-
+// ======================= المكالمات (إصلاح كتم الصوت) =======================
 window.startCall = async function(type) {
     if(!activeChat || activeChat.id==='group') { showNotif('اختر محادثة خاصة أولاً','⚠️'); return; }
     targetUser = allEmployees.find(e=>e.id===activeChat.id); if(!targetUser) return;
@@ -672,11 +649,17 @@ window.startCall = async function(type) {
 };
 async function setupCall(isAnswer) {
     try {
-        const constraints = { audio: { echoCancellation:true, noiseSuppression:true }, video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false };
-        const rawStream = await navigator.mediaDevices.getUserMedia(constraints);
+        // تنشيط السياق الصوتي للسماح بتشغيل الصوت
+        const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (tmpCtx.state === 'suspended') await tmpCtx.resume();
+        tmpCtx.close();
         
-        // تطبيق بوابة الضوضاء (تضمن استئناف audioContext داخلياً)
-        localStream = await applyNoiseGate(rawStream);
+        // استخدام الإعدادات الأساسية مع إلغاء الصدى فقط
+        const constraints = { 
+            audio: { echoCancellation: true },
+            video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false 
+        };
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
         
         document.getElementById('localVideo').srcObject = localStream;
         document.getElementById('callOverlay').style.display = 'flex';
@@ -700,12 +683,7 @@ async function setupCall(isAnswer) {
 }
 window.hangUp = function(sendSignal = true) {
     if(peerConnection) peerConnection.close();
-    if(localStream) {
-        localStream.getTracks().forEach(t=>t.stop());
-        if (localStream._audioContext) {
-            localStream._audioContext.close();
-        }
-    }
+    if(localStream) { localStream.getTracks().forEach(t=>t.stop()); }
     if(isCallActive && callStartTime && targetUser && currentUser) addCallLog(currentUser.id, targetUser.id, currentCallType, true, Math.floor((Date.now()-callStartTime)/1000));
     else if(!isCallActive && pendingFrom) addCallLog(pendingFrom, currentUser.id, pendingType, false, 0);
     if(sendSignal && isCallActive && targetUser) signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:targetUser.id } });
@@ -729,9 +707,7 @@ function showIncomingCall(name, type, fromId) {
 }
 document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
 document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
-document.getElementById('pickImageBtn').onclick = ()=> showNotif('خاصية إرسال الملفات قريباً', '📎');
 
-// ... (باقي الأكواد الخاصة بسجل المكالمات والإدارة والتنقل كما هي دون تغيير) ...
 // ======================= سجل المكالمات =======================
 function addCallLog(callerId, calleeId, callType, answered, durationSec) {
     if(!currentUser) return;
@@ -764,10 +740,7 @@ window.startCallWithUser = function(userId, type) {
 };
 
 // ======================= الإعدادات والإدارة =======================
-document.getElementById('adminIcon').onclick = ()=> {
-    document.getElementById('settingsModal').style.display='block';
-    document.getElementById('adminPanelBtn').style.display = isDirector() ? 'block' : 'none';
-};
+document.getElementById('adminIcon').onclick = ()=> { document.getElementById('settingsModal').style.display='block'; document.getElementById('adminPanelBtn').style.display = isDirector() ? 'block' : 'none'; };
 document.getElementById('logoutBtn').onclick = ()=>{ clearRememberedUser(); logout(); };
 function logout() {
     if(messagesChannel) supabaseClient.removeChannel(messagesChannel);
@@ -812,9 +785,7 @@ window.addEmployee = async ()=>{
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='employees.csv'; a.click();
     renderLoginList(); renderChatsList(); renderDeleteEmployeeList();
     showNotif('تمت إضافة الموظف بنجاح (سيتم تنزيل ملف CSV محدث)', '✅');
-    document.getElementById('newEmpName').value='';
-    document.getElementById('newEmpId').value='';
-    document.getElementById('newEmpJob').value='';
+    document.getElementById('newEmpName').value=''; document.getElementById('newEmpId').value=''; document.getElementById('newEmpJob').value='';
 };
 window.deleteEmployee = async (id, name)=>{
     if(!isDirector()) return alert('غير مصرح');
@@ -827,11 +798,7 @@ window.deleteEmployee = async (id, name)=>{
     renderLoginList(); renderChatsList(); renderDeleteEmployeeList();
     showNotif('تم حذف الموظف (سيتم تنزيل ملف CSV محدث)', '🗑️');
 };
-function renderLoginList() {
-    if (document.getElementById('searchPhase').style.display !== 'none') {
-        window.searchEmployees();
-    }
-}
+function renderLoginList() { if (document.getElementById('searchPhase').style.display !== 'none') window.searchEmployees(); }
 
 // ======================= التنقل =======================
 document.querySelectorAll('.nav-item').forEach(item=>{
@@ -855,8 +822,6 @@ document.getElementById('closeCallsBtn').onclick = ()=>{
     document.getElementById('mainView').style.display='flex'; 
     document.querySelector('.nav-item[data-section="chats"]').click(); 
 };
-
-// ======================= ربط زر الحذف الشامل =======================
 document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
 
 // ======================= بدء التشغيل =======================
