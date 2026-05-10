@@ -106,6 +106,7 @@
     </style>
 </head>
 <body>
+<!-- ... (نفس محتوى الجسم بالضبط دون تغيير) ... -->
 <div id="loginScreen" class="login-screen">
     <h1 style="color:var(--primary);">Messenger Pro</h1>
     <p style="color:var(--text-muted);">نظام تواصل المؤسسة الذكي</p>
@@ -166,7 +167,6 @@
             <div style="flex:1; margin-right:10px;"><strong id="chatHeaderName"></strong><div id="typingIndicator" style="font-size:11px;color:var(--online-dot);display:none;">يكتب الآن...</div></div>
             <i class="fas fa-phone-alt" id="callAudioBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: var(--primary);"></i>
             <i class="fas fa-video" id="callVideoBtn" style="cursor:pointer; font-size:18px; color: var(--primary);"></i>
-            <!-- زر حذف جميع الرسائل يظهر للمدير فقط -->
             <i class="fas fa-trash-alt" id="deleteAllBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: #d32f2f; display:none;" title="حذف جميع الرسائل"></i>
         </div>
         <div class="messages-container" id="messagesContainer"></div>
@@ -351,11 +351,9 @@ async function deleteAllMessages() {
         return;
     }
 
-    // تفريغ شاشة المحادثة
     document.getElementById('messagesContainer').innerHTML = 
         '<div style="text-align:center;margin-top:50px;color:gray;">تم حذف جميع الرسائل 🗑️</div>';
 
-    // إزالة إشعارات غير المقروءة لهذه المحادثة
     if (unreadCounts[currentChatId]) {
         delete unreadCounts[currentChatId];
         localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
@@ -613,19 +611,22 @@ document.getElementById('msgInput').onkeydown = (e) => {
 };
 
 // ======================= المكالمات =======================
-// إضافة معالج الضوضاء
+// إضافة معالج الضوضاء مع استئناف AudioContext إجباري
 async function applyNoiseGate(originalStream) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // استئناف السياق الصوتي (ضروري جداً لتمرير الصوت)
+    if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+    }
+    
     const source = audioContext.createMediaStreamSource(originalStream);
     const destination = audioContext.createMediaStreamDestination();
     
-    // إعداد بوابة الضوضاء
     const bufferSize = 4096;
-    const threshold = 0.01; // عتبة الضوضاء
+    const threshold = 0.01;
     let gainNode = audioContext.createGain();
-    gainNode.gain.value = 0; // نبدأ بكتم الصوت
+    gainNode.gain.value = 0;
     
-    // معالج للتحكم في مستوى الصوت
     const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
     let smoothedLevel = 0;
     const attackTime = 0.95, releaseTime = 0.95;
@@ -638,14 +639,12 @@ async function applyNoiseGate(originalStream) {
         }
         const rms = Math.sqrt(sum / bufferSize);
         
-        // تحديث المستوى السلس
         if (rms > smoothedLevel) {
             smoothedLevel = rms * (1 - attackTime) + smoothedLevel * attackTime;
         } else {
             smoothedLevel = rms * (1 - releaseTime) + smoothedLevel * releaseTime;
         }
         
-        // إذا تجاوز العتبة، افتح البوابة
         if (smoothedLevel > threshold) {
             gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.05);
         } else {
@@ -653,17 +652,14 @@ async function applyNoiseGate(originalStream) {
         }
     };
     
-    // ربط المسارات: ميكروفون -> معالج -> كسب -> مخرج
     source.connect(processor);
     processor.connect(gainNode);
     gainNode.connect(destination);
     
-    // دمج المسار الصوتي المُعالج مع مسار الفيديو إن وجد
     const processedStream = new MediaStream();
     destination.stream.getAudioTracks().forEach(track => processedStream.addTrack(track));
     originalStream.getVideoTracks().forEach(track => processedStream.addTrack(track));
     
-    // تخزين audioContext لإغلاقه لاحقاً
     processedStream._audioContext = audioContext;
     return processedStream;
 }
@@ -679,7 +675,7 @@ async function setupCall(isAnswer) {
         const constraints = { audio: { echoCancellation:true, noiseSuppression:true }, video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false };
         const rawStream = await navigator.mediaDevices.getUserMedia(constraints);
         
-        // تطبيق بوابة الضوضاء
+        // تطبيق بوابة الضوضاء (تضمن استئناف audioContext داخلياً)
         localStream = await applyNoiseGate(rawStream);
         
         document.getElementById('localVideo').srcObject = localStream;
@@ -706,7 +702,6 @@ window.hangUp = function(sendSignal = true) {
     if(peerConnection) peerConnection.close();
     if(localStream) {
         localStream.getTracks().forEach(t=>t.stop());
-        // إغلاق audioContext الخاص ببوابة الضوضاء
         if (localStream._audioContext) {
             localStream._audioContext.close();
         }
@@ -736,6 +731,7 @@ document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
 document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
 document.getElementById('pickImageBtn').onclick = ()=> showNotif('خاصية إرسال الملفات قريباً', '📎');
 
+// ... (باقي الأكواد الخاصة بسجل المكالمات والإدارة والتنقل كما هي دون تغيير) ...
 // ======================= سجل المكالمات =======================
 function addCallLog(callerId, calleeId, callType, answered, durationSec) {
     if(!currentUser) return;
