@@ -213,7 +213,7 @@ const DIRECTOR_ID = '1098107010228600';
 let allEmployees = [];
 let currentUser = null;
 let activeChat = null;
-let currentChatId = null; // لتخزين معرف المحادثة الحالي
+let currentChatId = null;
 let unreadCounts = JSON.parse(localStorage.getItem('unread_counts') || '{}');
 let messagesChannel = null, typingChannel = null, presenceChannel = null, signalingChannel = null;
 let onlineUsers = new Set();
@@ -548,11 +548,10 @@ async function renderChatsList() {
 window.openChat = async (id, name) => {
     activeChat = { id, name };
     const chatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
-    currentChatId = chatId; // حفظ معرف الدردشة الحالية
+    currentChatId = chatId;
     markChatAsRead(chatId); addToActiveChats(chatId);
     document.getElementById('chatHeaderName').innerText = name;
     document.getElementById('chatHeaderImg').src = getAvatarUrl(id);
-    // إظهار أو إخفاء زر حذف الكل بناء على الصلاحية
     const deleteAllBtn = document.getElementById('deleteAllBtn');
     if (deleteAllBtn) {
         deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
@@ -614,6 +613,61 @@ document.getElementById('msgInput').onkeydown = (e) => {
 };
 
 // ======================= المكالمات =======================
+// إضافة معالج الضوضاء
+async function applyNoiseGate(originalStream) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(originalStream);
+    const destination = audioContext.createMediaStreamDestination();
+    
+    // إعداد بوابة الضوضاء
+    const bufferSize = 4096;
+    const threshold = 0.01; // عتبة الضوضاء
+    let gainNode = audioContext.createGain();
+    gainNode.gain.value = 0; // نبدأ بكتم الصوت
+    
+    // معالج للتحكم في مستوى الصوت
+    const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+    let smoothedLevel = 0;
+    const attackTime = 0.95, releaseTime = 0.95;
+    
+    processor.onaudioprocess = function(e) {
+        const input = e.inputBuffer.getChannelData(0);
+        let sum = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            sum += Math.abs(input[i]);
+        }
+        const rms = Math.sqrt(sum / bufferSize);
+        
+        // تحديث المستوى السلس
+        if (rms > smoothedLevel) {
+            smoothedLevel = rms * (1 - attackTime) + smoothedLevel * attackTime;
+        } else {
+            smoothedLevel = rms * (1 - releaseTime) + smoothedLevel * releaseTime;
+        }
+        
+        // إذا تجاوز العتبة، افتح البوابة
+        if (smoothedLevel > threshold) {
+            gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.05);
+        } else {
+            gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+        }
+    };
+    
+    // ربط المسارات: ميكروفون -> معالج -> كسب -> مخرج
+    source.connect(processor);
+    processor.connect(gainNode);
+    gainNode.connect(destination);
+    
+    // دمج المسار الصوتي المُعالج مع مسار الفيديو إن وجد
+    const processedStream = new MediaStream();
+    destination.stream.getAudioTracks().forEach(track => processedStream.addTrack(track));
+    originalStream.getVideoTracks().forEach(track => processedStream.addTrack(track));
+    
+    // تخزين audioContext لإغلاقه لاحقاً
+    processedStream._audioContext = audioContext;
+    return processedStream;
+}
+
 window.startCall = async function(type) {
     if(!activeChat || activeChat.id==='group') { showNotif('اختر محادثة خاصة أولاً','⚠️'); return; }
     targetUser = allEmployees.find(e=>e.id===activeChat.id); if(!targetUser) return;
@@ -623,7 +677,11 @@ window.startCall = async function(type) {
 async function setupCall(isAnswer) {
     try {
         const constraints = { audio: { echoCancellation:true, noiseSuppression:true }, video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false };
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const rawStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // تطبيق بوابة الضوضاء
+        localStream = await applyNoiseGate(rawStream);
+        
         document.getElementById('localVideo').srcObject = localStream;
         document.getElementById('callOverlay').style.display = 'flex';
         document.getElementById('callPartnerName').innerText = targetUser.name;
@@ -646,7 +704,13 @@ async function setupCall(isAnswer) {
 }
 window.hangUp = function(sendSignal = true) {
     if(peerConnection) peerConnection.close();
-    if(localStream) localStream.getTracks().forEach(t=>t.stop());
+    if(localStream) {
+        localStream.getTracks().forEach(t=>t.stop());
+        // إغلاق audioContext الخاص ببوابة الضوضاء
+        if (localStream._audioContext) {
+            localStream._audioContext.close();
+        }
+    }
     if(isCallActive && callStartTime && targetUser && currentUser) addCallLog(currentUser.id, targetUser.id, currentCallType, true, Math.floor((Date.now()-callStartTime)/1000));
     else if(!isCallActive && pendingFrom) addCallLog(pendingFrom, currentUser.id, pendingType, false, 0);
     if(sendSignal && isCallActive && targetUser) signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:targetUser.id } });
