@@ -166,6 +166,8 @@
             <div style="flex:1; margin-right:10px;"><strong id="chatHeaderName"></strong><div id="typingIndicator" style="font-size:11px;color:var(--online-dot);display:none;">يكتب الآن...</div></div>
             <i class="fas fa-phone-alt" id="callAudioBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: var(--primary);"></i>
             <i class="fas fa-video" id="callVideoBtn" style="cursor:pointer; font-size:18px; color: var(--primary);"></i>
+            <!-- زر حذف جميع الرسائل يظهر للمدير فقط -->
+            <i class="fas fa-trash-alt" id="deleteAllBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: #d32f2f; display:none;" title="حذف جميع الرسائل"></i>
         </div>
         <div class="messages-container" id="messagesContainer"></div>
         <div class="input-area">
@@ -211,6 +213,7 @@ const DIRECTOR_ID = '1098107010228600';
 let allEmployees = [];
 let currentUser = null;
 let activeChat = null;
+let currentChatId = null; // لتخزين معرف المحادثة الحالي
 let unreadCounts = JSON.parse(localStorage.getItem('unread_counts') || '{}');
 let messagesChannel = null, typingChannel = null, presenceChannel = null, signalingChannel = null;
 let onlineUsers = new Set();
@@ -314,7 +317,7 @@ window.changeAvatar = function(event) {
     reader.readAsDataURL(file);
 };
 
-// ======================= حذف الرسائل =======================
+// ======================= حذف الرسائل (فردية) =======================
 async function deleteMessage(msgId) {
     if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
     const { error } = await supabaseClient.from('messages').delete().eq('id', msgId);
@@ -323,6 +326,43 @@ async function deleteMessage(msgId) {
         if (msgElement) msgElement.remove();
         showNotif('تم حذف الرسالة', '🗑️');
     }
+}
+
+// ======================= حذف جميع رسائل المحادثة الحالية (للمدير) =======================
+async function deleteAllMessages() {
+    if (!isDirector()) {
+        showNotif('غير مصرح لك بهذه العملية', '⛔');
+        return;
+    }
+    if (!currentChatId) {
+        showNotif('لا توجد محادثة مفتوحة', '❓');
+        return;
+    }
+
+    if (!confirm('هل أنت متأكد من حذف جميع رسائل هذه المحادثة؟ لا يمكن التراجع عن ذلك.')) return;
+
+    const { error } = await supabaseClient
+        .from('messages')
+        .delete()
+        .eq('chat_id', currentChatId);
+
+    if (error) {
+        showNotif('فشل في حذف الرسائل: ' + error.message, '❌');
+        return;
+    }
+
+    // تفريغ شاشة المحادثة
+    document.getElementById('messagesContainer').innerHTML = 
+        '<div style="text-align:center;margin-top:50px;color:gray;">تم حذف جميع الرسائل 🗑️</div>';
+
+    // إزالة إشعارات غير المقروءة لهذه المحادثة
+    if (unreadCounts[currentChatId]) {
+        delete unreadCounts[currentChatId];
+        localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
+    }
+
+    renderChatsList();
+    showNotif('تم حذف جميع الرسائل بنجاح', '✅');
 }
 
 // ======================= تحميل الموظفين =======================
@@ -508,9 +548,15 @@ async function renderChatsList() {
 window.openChat = async (id, name) => {
     activeChat = { id, name };
     const chatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
+    currentChatId = chatId; // حفظ معرف الدردشة الحالية
     markChatAsRead(chatId); addToActiveChats(chatId);
     document.getElementById('chatHeaderName').innerText = name;
     document.getElementById('chatHeaderImg').src = getAvatarUrl(id);
+    // إظهار أو إخفاء زر حذف الكل بناء على الصلاحية
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    if (deleteAllBtn) {
+        deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
+    }
     document.getElementById('mainView').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
     document.getElementById('callsScreen').style.display = 'none';
@@ -519,6 +565,7 @@ window.openChat = async (id, name) => {
 };
 document.getElementById('closeChatBtn').onclick = ()=>{
     activeChat = null;
+    currentChatId = null;
     document.getElementById('chatScreen').style.display = 'none';
     document.getElementById('mainView').style.display = 'flex';
     document.getElementById('typingIndicator').style.display = 'none';
@@ -748,6 +795,9 @@ document.getElementById('closeCallsBtn').onclick = ()=>{
     document.getElementById('mainView').style.display='flex'; 
     document.querySelector('.nav-item[data-section="chats"]').click(); 
 };
+
+// ======================= ربط زر الحذف الشامل =======================
+document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
 
 // ======================= بدء التشغيل =======================
 loadEmployees();
