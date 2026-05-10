@@ -28,50 +28,52 @@
 
         .login-screen {
             background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm);
-            max-width: 450px; width: 95%; padding: 25px; text-align: center; margin: 20px auto;
+            max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto;
         }
-        .input-field { width: 100%; padding: 12px; border-radius: 20px; border: 1px solid var(--border-light); background: #f0f2f5; outline: none; margin: 8px 0; font-size: 14px; }
-        .dropdown-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 12px; background: white; text-align: right; display: none; }
-        .dropdown-item { padding: 12px; cursor: pointer; display: flex; align-items: center; border-bottom: 1px solid #f0f0f0; transition: 0.2s; }
+        .login-screen h1 { font-size: 28px; margin-bottom: 5px; }
+        .login-screen p { margin-bottom: 8px; }
+        .input-field { width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--border-light); background: #f0f2f5; outline: none; margin: 6px 0; font-size: 14px; }
+        .dropdown-list { max-height: 200px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 12px; background: white; text-align: right; display: none; }
+        .dropdown-item { padding: 10px; cursor: pointer; display: flex; align-items: center; border-bottom: 1px solid #f0f0f0; transition: 0.2s; }
         .dropdown-item:hover { background: #f0f2f5; }
-        .login-btn { width: 100%; padding: 14px; border-radius: 25px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin: 8px 0; font-size: 16px; transition: 0.3s; }
+        .login-btn { width: 100%; padding: 12px; border-radius: 25px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin: 6px 0; font-size: 15px; transition: 0.3s; }
         .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .link-btn { background: none; border: none; color: var(--primary); cursor: pointer; margin-top: 10px; font-size: 14px; }
+        .link-btn { background: none; border: none; color: var(--primary); cursor: pointer; margin-top: 6px; font-size: 14px; }
 
         #app { display: none; width: 100%; max-width: 500px; height: 100vh; background: white; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; }
-        .main-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
-        .main-header h2 { font-size: 22px; font-weight: bold; }
-        .online-bar { display: flex; padding: 12px 10px; gap: 15px; overflow-x: auto; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; background: white; }
-        .online-user { display: flex; flex-direction: column; align-items: center; min-width: 70px; cursor: pointer; position: relative; }
-        .story-avatar { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--primary); padding: 2px; object-fit: cover; transition: 0.2s; }
+        .main-header { padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
+        .main-header h2 { font-size: 20px; font-weight: bold; }
+        .online-bar { display: flex; padding: 10px 8px; gap: 12px; overflow-x: auto; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; background: white; }
+        .online-user { display: flex; flex-direction: column; align-items: center; min-width: 65px; cursor: pointer; position: relative; }
+        .story-avatar { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--primary); padding: 2px; object-fit: cover; transition: 0.2s; }
         .story-avatar:hover { transform: scale(1.05); }
-        .active-dot { width: 14px; height: 14px; background: var(--online-dot); border: 2px solid white; border-radius: 50%; position: absolute; bottom: 18px; right: 8px; }
+        .active-dot { width: 12px; height: 12px; background: var(--online-dot); border: 2px solid white; border-radius: 50%; position: absolute; bottom: 15px; right: 5px; }
         .chats-list { flex: 1; overflow-y: auto; }
-        .chat-row { display: flex; padding: 14px 15px; align-items: center; cursor: pointer; position: relative; transition: 0.2s; border-bottom: 1px solid #f5f5f5; }
+        .chat-row { display: flex; padding: 12px 12px; align-items: center; cursor: pointer; position: relative; transition: 0.2s; border-bottom: 1px solid #f5f5f5; }
         .chat-row:hover { background: #f5f5f5; }
-        .chat-info { margin-right: 12px; flex: 1; }
-        .chat-info h5 { font-size: 15px; margin-bottom: 3px; color: var(--secondary); }
-        .chat-info p { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .unread-badge { background: var(--badge-bg); color: white; border-radius: 50%; min-width: 20px; height: 20px; font-size: 11px; display: flex; align-items: center; justify-content: center; position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-weight: bold; }
+        .chat-info { margin-right: 10px; flex: 1; }
+        .chat-info h5 { font-size: 14px; margin-bottom: 2px; color: var(--secondary); }
+        .chat-info p { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .unread-badge { background: var(--badge-bg); color: white; border-radius: 50%; min-width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-weight: bold; }
         .chat-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; display: none; flex-direction: column; }
-        .chat-header { padding: 12px; display: flex; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
-        .chat-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .messages-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fff; }
+        .chat-header { padding: 10px; display: flex; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
+        .chat-header img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .messages-container { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #fff; }
 
         .message { max-width: 75%; position: relative; }
         .message.sent { align-self: flex-end; }
         .message.received { align-self: flex-start; }
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 14px; position: relative; word-wrap: break-word; }
+        .bubble { padding: 8px 12px; border-radius: 18px; font-size: 13px; position: relative; word-wrap: break-word; }
         .sent .bubble { background: var(--bubble-sent); color: var(--bubble-text-sent); border-bottom-right-radius: 4px; }
         .received .bubble { background: var(--bubble-received); color: var(--bubble-text-received); border-bottom-left-radius: 4px; }
         .msg-time {
-            font-size: 11px;
-            margin-top: 4px;
-            padding: 0 5px;
+            font-size: 10px;
+            margin-top: 3px;
+            padding: 0 4px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
         }
         .sent .msg-time { color: rgba(255,255,255,0.9); flex-direction: row-reverse; }
         .received .msg-time { color: #65676b; }
@@ -79,8 +81,8 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 12px;
-            padding: 2px 6px;
+            font-size: 11px;
+            padding: 2px 5px;
             border-radius: 10px;
             transition: 0.2s;
         }
@@ -88,59 +90,59 @@
         .received .delete-msg-btn { color: #999; }
         .delete-msg-btn:hover { background: rgba(0,0,0,0.1); }
 
-        .input-area { padding: 12px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #eee; flex-shrink: 0; background: white; }
-        .input-wrapper { flex: 1; background: #f0f2f5; border-radius: 25px; padding: 8px 18px; }
+        .input-area { padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #eee; flex-shrink: 0; background: white; }
+        .input-wrapper { flex: 1; background: #f0f2f5; border-radius: 25px; padding: 6px 15px; }
         .input-wrapper input { width: 100%; border: none; background: transparent; outline: none; font-size: 14px; }
-        .bottom-nav { display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid #eee; background: white; flex-shrink: 0; }
-        .nav-item { cursor: pointer; text-align: center; transition: 0.2s; padding: 5px 15px; border-radius: 20px; }
+        .bottom-nav { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #eee; background: white; flex-shrink: 0; }
+        .nav-item { cursor: pointer; text-align: center; transition: 0.2s; padding: 4px 12px; border-radius: 20px; }
         .nav-item.active { color: var(--primary); background: var(--primary-light); }
         .nav-item:not(.active) { color: var(--text-muted); }
         .call-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1c1e21; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; z-index: 10000; display: none; font-size: 14px; box-shadow: var(--shadow-sm); }
-        .settings-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 25px; z-index: 3000; display: none; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .incoming-call { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; border-radius: 20px; padding: 20px; z-index: 2000; display: none; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        .settings-modal .option-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; background: white; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; z-index: 10000; display: none; font-size: 13px; box-shadow: var(--shadow-sm); }
+        .settings-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 20px; z-index: 3000; display: none; width: 90%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .incoming-call { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; border-radius: 20px; padding: 15px; z-index: 2000; display: none; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        .settings-modal .option-btn { display: block; width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; background: white; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.2s; }
         .settings-modal .option-btn:hover { background: #f5f5f5; }
     </style>
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
-    <h1 style="color:var(--primary); font-size: 30px;">Messenger Pro</h1>
-    <p style="color:var(--text-muted); margin-bottom: 15px;">نظام تواصل المؤسسة الذكي</p>
-    <div id="statusBar" style="font-size:12px; margin:10px 0; color: var(--text-muted);">⏳ جاري التحميل...</div>
+    <h1 style="color:var(--primary);">Messenger Pro</h1>
+    <p style="color:var(--text-muted);">نظام تواصل المؤسسة الذكي</p>
+    <div id="statusBar" style="font-size:11px; margin:6px 0; color: var(--text-muted);">⏳ جاري التحميل...</div>
     <div id="searchPhase">
         <input type="text" id="loginSearch" class="input-field" placeholder="🔍 اكتب أول حرفين من اسمك..." oninput="window.searchEmployees()" autocomplete="off">
         <div id="searchDropdown" class="dropdown-list"></div>
     </div>
     <div id="credentialsPhase" style="display:none;">
-        <p id="selectedEmpName" style="font-weight:bold; font-size:16px;"></p>
+        <p id="selectedEmpName" style="font-weight:bold; font-size:15px; margin:5px 0;"></p>
         <input type="password" id="passInput" class="input-field" placeholder="الرقم الوظيفي">
         <button id="verifyIdBtn" class="login-btn">تحقق</button>
-        <button class="link-btn" id="backToSearch1">â¬… العودة</button>
+        <button class="link-btn" id="backToSearch1">⬅ العودة</button>
     </div>
     <div id="passwordPhase" style="display:none;">
-        <p style="font-size:15px;">Ù‚Ù… Ø¨Ø¥Ù†Ø´Ø§Ø¡ ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø¬Ø¯ÙŠØ¯Ø©</p>
-        <input type="password" id="newPassword" class="input-field" placeholder="ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±">
-        <input type="password" id="confirmPassword" class="input-field" placeholder="ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±">
-        <label style="display:flex; align-items:center; gap:5px; margin:10px 0; cursor:pointer;"><input type="checkbox" id="rememberMeCheckbox"> ØªØ°ÙƒØ±Ù†ÙŠ</label>
-        <button id="setPasswordBtn" class="login-btn">Ø¯Ø®ÙˆÙ„</button>
-        <button class="link-btn" id="backToSearch2">â¬… Ø§Ù„Ø¹ÙˆØ¯Ø©</button>
+        <p style="font-size:14px; margin:5px 0;">قم بإنشاء كلمة مرور جديدة</p>
+        <input type="password" id="newPassword" class="input-field" placeholder="كلمة المرور الجديدة">
+        <input type="password" id="confirmPassword" class="input-field" placeholder="تأكيد كلمة المرور">
+        <label style="display:flex; align-items:center; gap:5px; margin:8px 0; cursor:pointer;"><input type="checkbox" id="rememberMeCheckbox"> تذكرني</label>
+        <button id="setPasswordBtn" class="login-btn">دخول</button>
+        <button class="link-btn" id="backToSearch2">⬅ العودة</button>
     </div>
-    <div class="admin-panel" id="adminPanel" style="display:none; background:#fff; border:1px solid #e0e0e0; padding:20px; border-radius:20px; margin-top:20px; text-align:right;">
-        <h4 style="color: #f57c00; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-user-shield"></i> Ø¥Ø¯Ø§Ø±Ø© Ø´Ø¤ÙˆÙ† Ø§Ù„Ù…ÙˆØ¸ÙÙŠÙ†</h4>
-        <input type="text" id="newEmpName" class="input-field" placeholder="Ø§Ù„Ù„Ù‚Ø¨ ÙˆØ§Ù„Ø§Ø³Ù…">
-        <input type="text" id="newEmpId" class="input-field" placeholder="Ø§Ù„Ø±Ù‚Ù… Ø§Ù„ÙˆØ¸ÙŠÙÙŠ">
-        <input type="text" id="newEmpJob" class="input-field" placeholder="Ø§Ù„ÙˆØ¸ÙŠÙØ©">
-        <button onclick="window.addEmployee()" class="login-btn" style="background:#2e7d32;">Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ¸Ù Ø¬Ø¯ÙŠØ¯</button>
-        <div id="empDeleteList" style="margin-top:15px; max-height:150px; overflow-y:auto; border-top:1px solid #eee; padding-top:10px;"></div>
-        <button onclick="window.toggleAdminPanel()" class="login-btn" style="background:#d32f2f;">Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ù„ÙˆØ­Ø©</button>
+    <div class="admin-panel" id="adminPanel" style="display:none; background:#fff; border:1px solid #e0e0e0; padding:15px; border-radius:20px; margin-top:15px; text-align:right;">
+        <h4 style="color: #f57c00; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-user-shield"></i> إدارة شؤون الموظفين</h4>
+        <input type="text" id="newEmpName" class="input-field" placeholder="اللقب والاسم">
+        <input type="text" id="newEmpId" class="input-field" placeholder="الرقم الوظيفي">
+        <input type="text" id="newEmpJob" class="input-field" placeholder="الوظيفة">
+        <button onclick="window.addEmployee()" class="login-btn" style="background:#2e7d32;">إضافة موظف جديد</button>
+        <div id="empDeleteList" style="margin-top:12px; max-height:130px; overflow-y:auto; border-top:1px solid #eee; padding-top:8px;"></div>
+        <button onclick="window.toggleAdminPanel()" class="login-btn" style="background:#d32f2f;">إغلاق اللوحة</button>
     </div>
 </div>
 
 <div id="app">
     <div id="mainView" style="display:flex; flex-direction:column; height:100%;">
         <div class="main-header">
-            <h2>Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø§Øª</h2>
+            <h2>المحادثات</h2>
             <div style="display:flex; gap:15px;">
                 <i class="fas fa-cog" id="adminIcon" style="cursor:pointer;"></i>
                 <i class="fas fa-power-off" id="logoutBtn" style="color:#f44336; cursor:pointer;"></i>
@@ -149,26 +151,26 @@
         <div class="online-bar" id="storiesContainer"></div>
         <div class="chats-list" id="chatsList"></div>
         <div class="bottom-nav">
-            <div class="nav-item active" data-section="chats"><i class="fas fa-comment-dots"></i><div>Ø§Ù„Ø¯Ø±Ø¯Ø´Ø§Øª</div></div>
-            <div class="nav-item" data-section="calls"><i class="fas fa-phone-alt"></i><div>Ø§Ù„Ù…ÙƒØ§Ù„Ù…Ø§Øª</div></div>
+            <div class="nav-item active" data-section="chats"><i class="fas fa-comment-dots"></i><div>الدردشات</div></div>
+            <div class="nav-item" data-section="calls"><i class="fas fa-phone-alt"></i><div>المكالمات</div></div>
         </div>
     </div>
     <div id="callsScreen" style="display:none; height:100%; overflow-y:auto;">
-        <div style="display:flex; align-items:center; gap:15px; padding:15px;"><i class="fas fa-arrow-right" id="closeCallsBtn" style="cursor:pointer;"></i> <h3>Ø³Ø¬Ù„ Ø§Ù„Ù…ÙƒØ§Ù„Ù…Ø§Øª</h3></div>
+        <div style="display:flex; align-items:center; gap:15px; padding:15px;"><i class="fas fa-arrow-right" id="closeCallsBtn" style="cursor:pointer;"></i> <h3>سجل المكالمات</h3></div>
         <div id="callsList" style="padding:10px;"></div>
     </div>
     <div id="chatScreen" class="chat-screen">
         <div class="chat-header">
             <i class="fas fa-arrow-right" id="closeChatBtn" style="margin-left:10px; cursor:pointer; font-size:20px;"></i>
             <img id="chatHeaderImg">
-            <div style="flex:1; margin-right:10px;"><strong id="chatHeaderName"></strong><div id="typingIndicator" style="font-size:11px;color:var(--online-dot);display:none;">ÙŠÙƒØªØ¨ Ø§Ù„Ø¢Ù†...</div></div>
+            <div style="flex:1; margin-right:10px;"><strong id="chatHeaderName"></strong><div id="typingIndicator" style="font-size:11px;color:var(--online-dot);display:none;">يكتب الآن...</div></div>
             <i class="fas fa-phone-alt" id="callAudioBtn" style="margin-left:15px; cursor:pointer; font-size:18px; color: var(--primary);"></i>
             <i class="fas fa-video" id="callVideoBtn" style="cursor:pointer; font-size:18px; color: var(--primary);"></i>
         </div>
         <div class="messages-container" id="messagesContainer"></div>
         <div class="input-area">
             <i class="fas fa-plus-circle" id="pickImageBtn" style="color: var(--primary); font-size: 22px; cursor:pointer;"></i>
-            <div class="input-wrapper"><input type="text" id="msgInput" placeholder="Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„Ø©..."></div>
+            <div class="input-wrapper"><input type="text" id="msgInput" placeholder="اكتب رسالة..."></div>
             <i class="fas fa-paper-plane" id="sendBtn" style="color:var(--primary); font-size:22px; cursor:pointer;"></i>
         </div>
     </div>
@@ -176,7 +178,7 @@
 
 <div id="callOverlay" class="call-overlay">
     <div id="callPartnerName" style="font-size:24px;"></div>
-    <div id="callStatus" style="margin:10px 0;">Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø§ØªØµØ§Ù„...</div>
+    <div id="callStatus" style="margin:10px 0;">جاري الاتصال...</div>
     <video id="remoteVideo" style="width:300px; background:#000; border-radius:20px;" autoplay playsinline></video>
     <video id="localVideo" style="position:absolute; bottom:50px; right:50px; width:100px; border-radius:10px; border:2px solid white;" autoplay playsinline muted></video>
     <div style="margin-top:30px; display:flex; gap:20px;">
@@ -189,11 +191,11 @@
 <div id="incomingCall" class="incoming-call"></div>
 <div id="notification" class="notification"></div>
 <div id="settingsModal" class="settings-modal">
-    <h3 style="text-align:center; margin-bottom:20px;">Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª</h3>
-    <button class="option-btn" onclick="promptChangeAvatar()"><i class="fas fa-camera"></i> ØªØºÙŠÙŠØ± Ø§Ù„ØµÙˆØ±Ø© Ø§Ù„Ø´Ø®ØµÙŠØ©</button>
-    <button class="option-btn" id="adminPanelBtn" style="display:none;" onclick="document.getElementById('settingsModal').style.display='none'; toggleAdminPanel();"><i class="fas fa-users-cog"></i> Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙˆØ¸ÙÙŠÙ†</button>
-    <button class="option-btn" style="color:#d32f2f;" onclick="document.getElementById('settingsModal').style.display='none'; clearRememberedUser(); logout();"><i class="fas fa-sign-out-alt"></i> ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬</button>
-    <button class="option-btn" onclick="document.getElementById('settingsModal').style.display='none';">Ø¥ØºÙ„Ø§Ù‚</button>
+    <h3 style="text-align:center; margin-bottom:20px;">الإعدادات</h3>
+    <button class="option-btn" onclick="promptChangeAvatar()"><i class="fas fa-camera"></i> تغيير الصورة الشخصية</button>
+    <button class="option-btn" id="adminPanelBtn" style="display:none;" onclick="document.getElementById('settingsModal').style.display='none'; toggleAdminPanel();"><i class="fas fa-users-cog"></i> إدارة الموظفين</button>
+    <button class="option-btn" style="color:#d32f2f;" onclick="document.getElementById('settingsModal').style.display='none'; clearRememberedUser(); logout();"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    <button class="option-btn" onclick="document.getElementById('settingsModal').style.display='none';">إغلاق</button>
 </div>
 
 <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="window.changeAvatar(event)">
@@ -266,10 +268,9 @@ function incrementUnread(chatId, senderId) {
 }
 function markChatAsRead(chatId) { if(unreadCounts[chatId]) { delete unreadCounts[chatId]; localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); renderChatsList(); } }
 
-// ======================= الصور الشخصية (مدعومة من Supabase للمشاركة) =======================
+// ======================= الصور الشخصية =======================
 function getAvatarUrl(empId) {
     if (empId === 'group') return 'https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100';
-    // محاولة جلب الصورة من التخزين المحلي أولاً (للحصول على الصور القديمة)
     const saved = localStorage.getItem(`avatar_${empId}`);
     if (saved) return saved;
     const emp = allEmployees.find(e=>e.id===empId) || currentUser;
@@ -287,39 +288,28 @@ window.changeAvatar = function(event) {
     const reader = new FileReader();
     reader.onload = async function(e) {
         const base64 = e.target.result;
-        // حفظ في localStorage للاستخدام المحلي
         localStorage.setItem(`avatar_${currentUser.id}`, base64);
-        
-        // محاولة رفع الصورة إلى Supabase Storage لمشاركتها مع الآخرين
         try {
             const blob = await fetch(base64).then(r => r.blob());
             const fileName = `avatar_${currentUser.id}_${Date.now()}.jpg`;
             const { error: uploadError } = await supabaseClient.storage
                 .from('avatars')
                 .upload(fileName, blob, { cacheControl: '3600', upsert: true });
-            
             if (!uploadError) {
                 const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(fileName);
-                const publicUrl = urlData.publicUrl;
-                // محاولة تحديث جدول profiles إذا كان موجوداً
                 try {
                     await supabaseClient.from('profiles').upsert({ 
                         id: currentUser.id, 
                         name: currentUser.name, 
                         job: currentUser.job,
-                        avatar_url: publicUrl 
+                        avatar_url: urlData.publicUrl 
                     }, { onConflict: 'id' });
-                } catch (profileError) {
-                    console.log('جدول profiles غير موجود، تم الاعتماد على localStorage فقط');
-                }
+                } catch(profileError) {}
             }
-        } catch (storageError) {
-            console.log('فشل رفع الصورة إلى Supabase، تم الاعتماد على localStorage فقط');
-        }
-        
+        } catch(storageError) {}
         renderStories(); renderChatsList();
         if (activeChat) document.getElementById('chatHeaderImg').src = base64;
-        showNotif('تم تغيير الصورة بنجاح (محلياً)', '🖼️');
+        showNotif('تم تغيير الصورة بنجاح', '🖼️');
     };
     reader.readAsDataURL(file);
 };
@@ -329,51 +319,35 @@ async function deleteMessage(msgId) {
     if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
     const { error } = await supabaseClient.from('messages').delete().eq('id', msgId);
     if (!error) {
-        // إزالة الرسالة من الـ DOM فوراً
         const msgElement = document.querySelector(`[data-msg-id="${msgId}"]`);
         if (msgElement) msgElement.remove();
         showNotif('تم حذف الرسالة', '🗑️');
     }
 }
 
-// ======================= تحميل الموظفين من ملف CSV =======================
+// ======================= تحميل الموظفين =======================
 async function loadEmployees() {
     try {
-        // المحاولة الأولى: تحميل من ملف CSV المحلي
         const r = await fetch('./employees.csv');
         const text = await r.text();
         const lines = text.replace(/^\uFEFF/,'').split('\n').filter(l=>l.trim() && !l.startsWith('الرقم'));
         allEmployees = lines.map(line=>{ const p=line.split(';'); return {id:p[0]?.trim(),name:p[1]?.trim(),job:p[2]?.trim()}; });
-        document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف (من CSV)`;
-        
-        // محاولة مزامنة البيانات مع Supabase إن أمكن
+        document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف`;
         try {
-            const { data: supabaseData, error: supabaseError } = await supabaseClient.from('profiles').select('*');
-            if (!supabaseError && supabaseData && supabaseData.length > 0) {
-                // دمج بيانات Supabase مع بيانات CSV
-                for (const supEmp of supabaseData) {
-                    const existingIndex = allEmployees.findIndex(e => e.id === supEmp.id);
-                    if (existingIndex >= 0) {
-                        // تحديث بيانات الموظف الموجود
-                        if (supEmp.avatar_url) {
-                            localStorage.setItem(`avatar_${supEmp.id}`, supEmp.avatar_url);
-                        }
+            const { data: supData } = await supabaseClient.from('profiles').select('*');
+            if (supData) {
+                for (const supEmp of supData) {
+                    const idx = allEmployees.findIndex(e=>e.id===supEmp.id);
+                    if (idx>=0) {
+                        if (supEmp.avatar_url) localStorage.setItem(`avatar_${supEmp.id}`, supEmp.avatar_url);
                     } else {
-                        // إضافة موظف جديد من Supabase
                         allEmployees.push(supEmp);
                     }
                 }
-                document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف (CSV + Supabase)`;
             }
-        } catch (supabaseError) {
-            console.log('Supabase غير متاح، الاعتماد على CSV فقط');
-        }
-        
+        } catch(e) {}
         checkAutoLogin();
-    } catch(e) {
-        document.getElementById('statusBar').innerText='❌ فشل تحميل البيانات من CSV';
-        console.error(e);
-    }
+    } catch(e) { document.getElementById('statusBar').innerText='❌ فشل تحميل البيانات'; }
 }
 
 // ======================= مراحل تسجيل الدخول =======================
@@ -428,8 +402,6 @@ async function startApp() {
     await initChannels(); initPresence(); initSignaling();
     renderStories(); renderChatsList();
     showNotif(`👋 أهلاً ${currentUser.name}`);
-    
-    // إظهار زر إدارة الموظفين للمدير فقط
     if (isDirector()) {
         document.getElementById('adminPanelBtn').style.display = 'block';
     }
@@ -437,11 +409,9 @@ async function startApp() {
 
 // ======================= القنوات =======================
 async function initChannels() {
-    // قناة الرسائل - تستقبل الرسائل حتى لو المستخدم غير متصل
     messagesChannel = supabaseClient.channel('messages-channel')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'}, async payload=>{
         const msg = payload.new;
-        // تحديث المحادثة النشطة مباشرة
         if(activeChat) {
             const cid = activeChat.id==='group'?'group':[currentUser.id, activeChat.id].sort().join('_');
             if(msg.chat_id===cid) {
@@ -459,8 +429,7 @@ async function initChannels() {
             showNotif(`📩 رسالة جديدة من ${s?.name||'شخص'}`);
         }
     })
-    // قناة حذف الرسائل
-    .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages'}, async payload=>{
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages'}, payload=>{
         const deletedId = payload.old.id;
         const msgElement = document.querySelector(`[data-msg-id="${deletedId}"]`);
         if (msgElement) msgElement.remove();
@@ -564,20 +533,12 @@ async function fetchMessages(chatId) {
         const timeStr = formatTime(m.created_at);
         let senderName = '';
         if(activeChat.id==='group' && !isMine) { const s = allEmployees.find(e=>e.id===m.sender); if(s) senderName = `<div style="font-size:11px;color:var(--primary);margin-bottom:3px;font-weight:bold;">${s.name}</div>`; }
-        
-        // زر الحذف: يظهر للموظف على رسائله فقط، وللمدير على جميع الرسائل
         const canDelete = isMine || isDirector();
         const deleteBtn = canDelete ? `<button class="delete-msg-btn" onclick="deleteMessage('${m.id}')" title="حذف"><i class="fas fa-trash-alt"></i></button>` : '';
-        
         return `<div class="message ${isMine?'sent':'received'}" data-msg-id="${m.id}">
             ${senderName}
-            <div class="bubble">
-                ${m.text}
-            </div>
-            <div class="msg-time">
-                <span>${timeStr}</span>
-                ${deleteBtn}
-            </div>
+            <div class="bubble">${m.text}</div>
+            <div class="msg-time"><span>${timeStr}</span>${deleteBtn}</div>
         </div>`;
     }).join('');
     scrollToBottom();
@@ -698,11 +659,7 @@ window.startCallWithUser = function(userId, type) {
 // ======================= الإعدادات والإدارة =======================
 document.getElementById('adminIcon').onclick = ()=> {
     document.getElementById('settingsModal').style.display='block';
-    if (isDirector()) {
-        document.getElementById('adminPanelBtn').style.display = 'block';
-    } else {
-        document.getElementById('adminPanelBtn').style.display = 'none';
-    }
+    document.getElementById('adminPanelBtn').style.display = isDirector() ? 'block' : 'none';
 };
 document.getElementById('logoutBtn').onclick = ()=>{ clearRememberedUser(); logout(); };
 function logout() {
@@ -763,8 +720,6 @@ window.deleteEmployee = async (id, name)=>{
     renderLoginList(); renderChatsList(); renderDeleteEmployeeList();
     showNotif('تم حذف الموظف (سيتم تنزيل ملف CSV محدث)', '🗑️');
 };
-
-// دالة مساعدة لتحديث قائمة البحث
 function renderLoginList() {
     if (document.getElementById('searchPhase').style.display !== 'none') {
         window.searchEmployees();
