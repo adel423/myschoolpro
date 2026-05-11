@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -25,7 +25,6 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: var(--sky-bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-
         .login-screen {
             background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm);
             max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto;
@@ -39,7 +38,6 @@
         .login-btn { width: 100%; padding: 12px; border-radius: 25px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin: 6px 0; font-size: 15px; transition: 0.3s; }
         .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
         .link-btn { background: none; border: none; color: var(--primary); cursor: pointer; margin-top: 6px; font-size: 14px; }
-
         #app { display: none; width: 100%; max-width: 500px; height: 100vh; background: white; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; }
         .main-header { padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
         .main-header h2 { font-size: 20px; font-weight: bold; }
@@ -59,7 +57,6 @@
         .chat-header { padding: 10px; display: flex; align-items: center; border-bottom: 1px solid #ddd; flex-shrink: 0; background: white; }
         .chat-header img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
         .messages-container { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #fff; }
-
         .message { max-width: 75%; position: relative; }
         .message.sent { align-self: flex-end; }
         .message.received { align-self: flex-start; }
@@ -89,7 +86,6 @@
         .sent .delete-msg-btn { color: rgba(255,255,255,0.7); }
         .received .delete-msg-btn { color: #999; }
         .delete-msg-btn:hover { background: rgba(0,0,0,0.1); }
-
         .input-area { padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #eee; flex-shrink: 0; background: white; }
         .input-wrapper { flex: 1; background: #f0f2f5; border-radius: 25px; padding: 6px 15px; display: flex; align-items: center; }
         .input-wrapper input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; }
@@ -367,11 +363,9 @@ async function deleteAllMessages() {
         return;
     }
 
-    // تفريغ شاشة المحادثة
     document.getElementById('messagesContainer').innerHTML = 
         '<div style="text-align:center;margin-top:50px;color:gray;">تم حذف جميع الرسائل 🗑️</div>';
 
-    // إزالة إشعارات غير المقروءة لهذه المحادثة
     if (unreadCounts[currentChatId]) {
         delete unreadCounts[currentChatId];
         localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
@@ -384,11 +378,9 @@ async function deleteAllMessages() {
 // ======================= تحميل الموظفين (محلي + Supabase) =======================
 async function loadEmployees() {
     try {
-        // المحاولة الأولى: الملف المحلي
         let response = await fetch('./employees.csv');
         if (!response.ok) {
             console.warn('الملف المحلي غير موجود، جاري تحميله من Supabase...');
-            // المحاولة الثانية: تحميل من مخزن Supabase العام
             const { data: publicData } = supabaseClient.storage
                 .from('public')
                 .getPublicUrl('employees.csv');
@@ -403,7 +395,6 @@ async function loadEmployees() {
         });
         document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف`;
         
-        // تحميل صور الموظفين من Supabase اختياري
         try {
             const { data: supData } = await supabaseClient.from('profiles').select('*');
             if (supData) {
@@ -477,9 +468,7 @@ async function startApp() {
     await initChannels(); initPresence(); initSignaling();
     renderStories(); renderChatsList();
     showNotif(`👋 أهلاً ${currentUser.name}`);
-    if (isDirector()) {
-        document.getElementById('adminPanelBtn').style.display = 'block';
-    }
+    if (isDirector()) document.getElementById('adminPanelBtn').style.display = 'block';
 }
 
 // ======================= القنوات =======================
@@ -588,9 +577,7 @@ window.openChat = async (id, name) => {
     document.getElementById('chatHeaderName').innerText = name;
     document.getElementById('chatHeaderImg').src = getAvatarUrl(id);
     const deleteAllBtn = document.getElementById('deleteAllBtn');
-    if (deleteAllBtn) {
-        deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
-    }
+    if (deleteAllBtn) deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
     document.getElementById('mainView').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
     document.getElementById('callsScreen').style.display = 'none';
@@ -780,7 +767,6 @@ function showIncomingCall(name, type, fromId) {
 }
 document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
 document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
-document.getElementById('pickImageBtn').onclick = ()=> showNotif('خاصية إرسال الملفات قريباً', '📎');
 
 // ======================= سجل المكالمات =======================
 function addCallLog(callerId, calleeId, callType, answered, durationSec) {
@@ -878,9 +864,7 @@ window.deleteEmployee = async (id, name)=>{
     showNotif('تم حذف الموظف (سيتم تنزيل ملف CSV محدث)', '🗑️');
 };
 function renderLoginList() {
-    if (document.getElementById('searchPhase').style.display !== 'none') {
-        window.searchEmployees();
-    }
+    if (document.getElementById('searchPhase').style.display !== 'none') window.searchEmployees();
 }
 
 // ======================= التنقل =======================
