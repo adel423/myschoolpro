@@ -381,14 +381,29 @@ async function deleteAllMessages() {
     showNotif('تم حذف جميع الرسائل بنجاح', '✅');
 }
 
-// ======================= تحميل الموظفين =======================
+// ======================= تحميل الموظفين (محلي + Supabase) =======================
 async function loadEmployees() {
     try {
-        const r = await fetch('./employees.csv');
-        const text = await r.text();
+        // المحاولة الأولى: الملف المحلي
+        let response = await fetch('./employees.csv');
+        if (!response.ok) {
+            console.warn('الملف المحلي غير موجود، جاري تحميله من Supabase...');
+            // المحاولة الثانية: تحميل من مخزن Supabase العام
+            const { data: publicData } = supabaseClient.storage
+                .from('public')
+                .getPublicUrl('employees.csv');
+            response = await fetch(publicData.publicUrl);
+            if (!response.ok) throw new Error('فشل تحميل الملف من كلا المصدرين');
+        }
+        const text = await response.text();
         const lines = text.replace(/^\uFEFF/,'').split('\n').filter(l=>l.trim() && !l.startsWith('الرقم'));
-        allEmployees = lines.map(line=>{ const p=line.split(';'); return {id:p[0]?.trim(),name:p[1]?.trim(),job:p[2]?.trim()}; });
+        allEmployees = lines.map(line=>{ 
+            const p=line.split(';'); 
+            return {id:p[0]?.trim(), name:p[1]?.trim(), job:p[2]?.trim()}; 
+        });
         document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف`;
+        
+        // تحميل صور الموظفين من Supabase اختياري
         try {
             const { data: supData } = await supabaseClient.from('profiles').select('*');
             if (supData) {
@@ -402,8 +417,12 @@ async function loadEmployees() {
                 }
             }
         } catch(e) {}
+        
         checkAutoLogin();
-    } catch(e) { document.getElementById('statusBar').innerText='❌ فشل تحميل البيانات'; }
+    } catch(e) { 
+        console.error(e);
+        document.getElementById('statusBar').innerText='❌ فشل تحميل البيانات'; 
+    }
 }
 
 // ======================= مراحل تسجيل الدخول =======================
@@ -894,4 +913,4 @@ document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessa
 loadEmployees();
 </script>
 </body>
-</html>  
+</html>
