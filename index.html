@@ -22,6 +22,7 @@
             --shadow-sm: 0 2px 12px rgba(0,0,0,0.1);
             --border-light: #ced0d4;
             --badge-bg: #f02849;
+            --like-color: #e91e63;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: var(--sky-bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
@@ -63,26 +64,10 @@
         .bubble { padding: 8px 12px; border-radius: 18px; font-size: 13px; position: relative; word-wrap: break-word; }
         .sent .bubble { background: var(--bubble-sent); color: var(--bubble-text-sent); border-bottom-right-radius: 4px; }
         .received .bubble { background: var(--bubble-received); color: var(--bubble-text-received); border-bottom-left-radius: 4px; }
-        .msg-time {
-            font-size: 10px;
-            margin-top: 3px;
-            padding: 0 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-        }
+        .msg-time { font-size: 10px; margin-top: 3px; padding: 0 4px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
         .sent .msg-time { color: rgba(255,255,255,0.9); flex-direction: row-reverse; }
         .received .msg-time { color: #65676b; }
-        .delete-msg-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 11px;
-            padding: 2px 5px;
-            border-radius: 10px;
-            transition: 0.2s;
-        }
+        .delete-msg-btn { background: none; border: none; cursor: pointer; font-size: 11px; padding: 2px 5px; border-radius: 10px; transition: 0.2s; }
         .sent .delete-msg-btn { color: rgba(255,255,255,0.7); }
         .received .delete-msg-btn { color: #999; }
         .delete-msg-btn:hover { background: rgba(0,0,0,0.1); }
@@ -90,7 +75,7 @@
         .input-wrapper { flex: 1; background: #f0f2f5; border-radius: 25px; padding: 6px 15px; display: flex; align-items: center; }
         .input-wrapper input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; }
         .bottom-nav { display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #eee; background: white; flex-shrink: 0; }
-        .nav-item { cursor: pointer; text-align: center; transition: 0.2s; padding: 4px 12px; border-radius: 20px; }
+        .nav-item { cursor: pointer; text-align: center; transition: 0.2s; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
         .nav-item.active { color: var(--primary); background: var(--primary-light); }
         .nav-item:not(.active) { color: var(--text-muted); }
         .call-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1c1e21; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
@@ -99,11 +84,21 @@
         .incoming-call { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; border-radius: 20px; padding: 15px; z-index: 2000; display: none; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         .settings-modal .option-btn { display: block; width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; background: white; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.2s; }
         .settings-modal .option-btn:hover { background: #f5f5f5; }
-        .file-link {
-            color: var(--primary); text-decoration: none; word-break: break-all;
-            display: flex; align-items: center; gap: 5px;
-        }
+        .file-link { color: var(--primary); text-decoration: none; word-break: break-all; display: flex; align-items: center; gap: 5px; }
         .file-link i { margin-left: 5px; }
+        /* منشورات */
+        .post-card { background: white; border-radius: 12px; padding: 12px; margin: 10px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .post-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .post-body { margin-bottom: 10px; }
+        .post-image { max-width: 100%; border-radius: 8px; margin-top: 8px; }
+        .post-actions { display: flex; gap: 20px; font-size: 14px; color: var(--text-muted); }
+        .post-actions i { cursor: pointer; transition: 0.2s; }
+        .post-actions i.liked { color: var(--like-color); }
+        .post-time { font-size: 11px; color: gray; margin-left: auto; }
+        .create-post-area { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+        .create-post-area textarea { width: 100%; border: 1px solid #ddd; border-radius: 12px; padding: 10px; resize: vertical; }
+        .create-post-area button { background: var(--primary); color: white; border: none; border-radius: 20px; padding: 8px 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -130,7 +125,7 @@
         <button class="link-btn" id="backToSearch2">⬅ العودة</button>
     </div>
     <div class="admin-panel" id="adminPanel" style="display:none; background:#fff; border:1px solid #e0e0e0; padding:15px; border-radius:20px; margin-top:15px; text-align:right;">
-        <h4 style="color: #f57c00; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-user-shield"></i> إدارة شؤون الموظفين</h4>
+        <h4 style="color: #f57c00; margin-bottom: 12px;"><i class="fas fa-user-shield"></i> إدارة شؤون الموظفين</h4>
         <input type="text" id="newEmpName" class="input-field" placeholder="اللقب والاسم">
         <input type="text" id="newEmpId" class="input-field" placeholder="الرقم الوظيفي">
         <input type="text" id="newEmpJob" class="input-field" placeholder="الوظيفة">
@@ -143,16 +138,29 @@
 <div id="app">
     <div id="mainView" style="display:flex; flex-direction:column; height:100%;">
         <div class="main-header">
-            <h2>المحادثات</h2>
+            <h2 id="mainTitle">المحادثات</h2>
             <div style="display:flex; gap:15px;">
                 <i class="fas fa-cog" id="adminIcon" style="cursor:pointer;"></i>
                 <i class="fas fa-power-off" id="logoutBtn" style="color:#f44336; cursor:pointer;"></i>
             </div>
         </div>
         <div class="online-bar" id="storiesContainer"></div>
-        <div class="chats-list" id="chatsList"></div>
+        <div id="chatsList" class="chats-list" style="display:block;"></div>
+        <div id="postsScreen" style="display:none; flex:1; overflow-y:auto; padding:12px;">
+            <div class="create-post-area">
+                <textarea id="newPostText" placeholder="ما الذي يدور في ذهنك؟" rows="2"></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                    <label style="cursor:pointer;"><i class="fas fa-image" style="color:var(--primary);"></i> صورة</label>
+                    <input type="file" id="postImageInput" accept="image/*" onchange="previewPostImage(event)" style="display:none;">
+                    <button onclick="createPost()">نشر</button>
+                </div>
+                <img id="postPreview" style="max-width:100%; margin-top:8px; display:none;">
+            </div>
+            <div id="postsList"></div>
+        </div>
         <div class="bottom-nav">
             <div class="nav-item active" data-section="chats"><i class="fas fa-comment-dots"></i><div>الدردشات</div></div>
+            <div class="nav-item" data-section="posts"><i class="fas fa-newspaper"></i><div>المنشورات</div></div>
             <div class="nav-item" data-section="calls"><i class="fas fa-phone-alt"></i><div>المكالمات</div></div>
         </div>
     </div>
@@ -171,9 +179,7 @@
         </div>
         <div class="messages-container" id="messagesContainer"></div>
         <div class="input-area">
-            <label for="fileInput" style="cursor:pointer; color: var(--primary); font-size: 22px; display: flex; align-items: center;" title="إرفاق ملف">
-                <i class="fas fa-paperclip"></i>
-            </label>
+            <label for="fileInput" style="cursor:pointer; color: var(--primary); font-size: 22px;"><i class="fas fa-paperclip"></i></label>
             <input type="file" id="fileInput" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.bmp" onchange="handleFileUpload(event)">
             <div class="input-wrapper"><input type="text" id="msgInput" placeholder="اكتب رسالة..."></div>
             <i class="fas fa-paper-plane" id="sendBtn" style="color:var(--primary); font-size:22px; cursor:pointer;"></i>
@@ -207,7 +213,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ======================= الإعدادات والمتغيرات =======================
+// ======================= الإعدادات =======================
 const SUPABASE_URL = 'https://nfywbkvsvmhaczfatxkp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_VZMRpated19TvFgjTuf1Lw_uW7dOiHY';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -218,21 +224,22 @@ let currentUser = null;
 let activeChat = null;
 let currentChatId = null;
 let unreadCounts = JSON.parse(localStorage.getItem('unread_counts') || '{}');
-let messagesChannel = null, typingChannel = null, presenceChannel = null, signalingChannel = null;
+let messagesChannel = null, typingChannel = null, presenceChannel = null, signalingChannel = null, postsChannel = null, likesChannel = null;
 let onlineUsers = new Set();
 let localStream = null, peerConnection = null;
 let isCallActive = false, currentCallType = null, targetUser = null;
 let pendingOffer = null, pendingFrom = null, pendingType = null, callStartTime = null;
+let postImageFile = null;
 
-// ======================= نظام تذكرني =======================
+// ======================= تذكرني =======================
 function getRememberedUser() { const d = localStorage.getItem('remembered_user'); return d ? JSON.parse(d) : null; }
 function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
 function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
 
-// ======================= الصوت (مسنجر) =======================
+// ======================= صوت =======================
 function playTone(type) {
     try {
-        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
         gain.gain.value = 0.15;
@@ -246,20 +253,21 @@ function playTone(type) {
             osc.start(); osc.stop(ctx.currentTime+0.8);
         }
         if (navigator.vibrate) navigator.vibrate(type==='call' ? [500,300,500] : 200);
-    } catch(e) { console.warn('الصوت غير متاح', e); }
+    } catch(e) {}
 }
 
-// ======================= دوال مساعدة =======================
+// ======================= مساعدة =======================
 function showNotif(msg, icon='🔔') { const n=document.getElementById('notification'); n.innerHTML=icon+' '+msg; n.style.display='block'; setTimeout(()=>n.style.display='none',3000); }
 function scrollToBottom() { const c=document.getElementById('messagesContainer'); if(c) c.scrollTo({top:c.scrollHeight,behavior:'smooth'}); }
-function formatTime(d) { const date = new Date(d); const h = String(date.getHours()).padStart(2,'0'); const m = String(date.getMinutes()).padStart(2,'0'); const s = String(date.getSeconds()).padStart(2,'0'); return `${h}:${m}:${s}`; }
-function formatTimeAgo(d) { const diff=Math.floor((new Date()-new Date(d))/1000); if(diff<60) return `منذ ${diff} ث`; if(diff<3600) return `منذ ${Math.floor(diff/60)} د`; if(diff<86400) return `منذ ${Math.floor(diff/3600)} س`; return new Date(d).toLocaleDateString('ar'); }
-function escapeHtml(s) { return s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+function formatTime(d) { const date = new Date(d); return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`; }
+function formatTimeAgo(d) { const diff = Math.floor((new Date()-new Date(d))/1000); if(diff<60) return `منذ ${diff} ث`; if(diff<3600) return `منذ ${Math.floor(diff/60)} د`; if(diff<86400) return `منذ ${Math.floor(diff/3600)} س`; return new Date(d).toLocaleDateString('ar'); }
+function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function isDirector() { return currentUser?.id === DIRECTOR_ID; }
 function getActiveChatsKey() { return `active_chats_${currentUser.id}`; }
 function getActiveChats() { const s=localStorage.getItem(getActiveChatsKey()); return s?JSON.parse(s):[]; }
 function saveActiveChats(chats) { localStorage.setItem(getActiveChatsKey(), JSON.stringify(chats)); }
 function addToActiveChats(chatId) { const chats=getActiveChats(); if(!chats.includes(chatId)) { chats.push(chatId); saveActiveChats(chats); } }
+
 function incrementUnread(chatId, senderId) {
     if (activeChat && ((activeChat.id==='group' && chatId==='group') || (activeChat.id!=='group' && chatId===[currentUser.id, activeChat.id].sort().join('_'))) && senderId!==currentUser.id) return;
     if (senderId===currentUser.id) return;
@@ -269,7 +277,7 @@ function incrementUnread(chatId, senderId) {
 }
 function markChatAsRead(chatId) { if(unreadCounts[chatId]) { delete unreadCounts[chatId]; localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); renderChatsList(); } }
 
-// ======================= الصور الشخصية =======================
+// ======================= الصور =======================
 function getAvatarUrl(empId) {
     if (empId === 'group') return 'https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100';
     const saved = localStorage.getItem(`avatar_${empId}`);
@@ -281,84 +289,51 @@ function getAvatarUrl(empId) {
 function promptChangeAvatar() { if (!currentUser) return; document.getElementById('avatarFileInput').click(); }
 window.changeAvatar = function(event) {
     const file = event.target.files[0]; if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('حجم الصورة كبير جداً'); return; }
+    if (file.size > 5*1024*1024) { alert('حجم الصورة كبير جداً'); return; }
     const reader = new FileReader();
     reader.onload = async function(e) {
-        const base64 = e.target.result;
-        localStorage.setItem(`avatar_${currentUser.id}`, base64);
+        localStorage.setItem(`avatar_${currentUser.id}`, e.target.result);
         try {
-            const blob = await fetch(base64).then(r => r.blob());
+            const blob = await fetch(e.target.result).then(r=>r.blob());
             const fileName = `avatar_${currentUser.id}_${Date.now()}.jpg`;
-            const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(fileName, blob, { cacheControl: '3600', upsert: true });
-            if (!uploadError) {
-                const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(fileName);
-                await supabaseClient.from('profiles').upsert({ id: currentUser.id, name: currentUser.name, job: currentUser.job, avatar_url: urlData.publicUrl }, { onConflict: 'id' });
-            }
-        } catch(storageError) {}
+            await supabaseClient.storage.from('avatars').upload(fileName, blob, {cacheControl:'3600',upsert:true});
+        } catch(err) {}
         renderStories(); renderChatsList();
-        if (activeChat) document.getElementById('chatHeaderImg').src = base64;
-        showNotif('تم تغيير الصورة بنجاح', '🖼️');
+        if (activeChat) document.getElementById('chatHeaderImg').src = e.target.result;
+        showNotif('تم تغيير الصورة', '🖼️');
     };
     reader.readAsDataURL(file);
 };
 
-// ======================= حذف الرسائل =======================
-async function deleteMessage(msgId) {
-    if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
-    const { error } = await supabaseClient.from('messages').delete().eq('id', msgId);
-    if (!error) {
-        const el = document.querySelector(`[data-msg-id="${msgId}"]`);
-        if (el) el.remove();
-        showNotif('تم حذف الرسالة', '🗑️');
-    }
-}
-
-async function deleteAllMessages() {
-    if (!isDirector() || !currentChatId) return;
-    if (!confirm('حذف جميع رسائل هذه المحادثة؟')) return;
-    try {
-        const { data: files } = await supabaseClient.storage.from('chat-files').list(currentChatId);
-        if (files?.length) await supabaseClient.storage.from('chat-files').remove(files.map(f=>`${currentChatId}/${f.name}`));
-    } catch(e) {}
-    await supabaseClient.from('messages').delete().eq('chat_id', currentChatId);
-    document.getElementById('messagesContainer').innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">تم حذف جميع الرسائل 🗑️</div>';
-    if (unreadCounts[currentChatId]) { delete unreadCounts[currentChatId]; localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); }
-    renderChatsList();
-    showNotif('تم حذف جميع الرسائل', '✅');
-}
-
 // ======================= تحميل الموظفين =======================
 async function loadEmployees() {
     try {
-        let response = await fetch('./employees.csv');
-        if (!response.ok) {
-            const { data: publicData } = supabaseClient.storage.from('public').getPublicUrl('employees.csv');
-            response = await fetch(publicData.publicUrl);
-        }
-        const text = await response.text();
+        let res = await fetch('./employees.csv');
+        if (!res.ok) res = await fetch(supabaseClient.storage.from('public').getPublicUrl('employees.csv').data.publicUrl);
+        const text = await res.text();
         const lines = text.replace(/^\uFEFF/,'').split('\n').filter(l=>l.trim() && !l.startsWith('الرقم'));
         allEmployees = lines.map(line=>{ const p=line.split(';'); return {id:p[0]?.trim(), name:p[1]?.trim(), job:p[2]?.trim()}; });
         document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف`;
         try {
             const { data: supData } = await supabaseClient.from('profiles').select('*');
-            if (supData) supData.forEach(supEmp => {
-                const idx = allEmployees.findIndex(e=>e.id===supEmp.id);
-                if (idx>=0) { if(supEmp.avatar_url) localStorage.setItem(`avatar_${supEmp.id}`, supEmp.avatar_url); }
-                else allEmployees.push(supEmp);
+            if (supData) supData.forEach(e => {
+                const idx = allEmployees.findIndex(emp=>emp.id===e.id);
+                if (idx>=0) { if(e.avatar_url) localStorage.setItem(`avatar_${e.id}`, e.avatar_url); }
+                else allEmployees.push(e);
             });
         } catch(e) {}
         checkAutoLogin();
     } catch(e) { document.getElementById('statusBar').innerText='❌ فشل تحميل البيانات'; }
 }
 
-// ======================= مراحل تسجيل الدخول =======================
+// ======================= تسجيل الدخول =======================
 let selectedLoginEmp = null;
 window.searchEmployees = function() {
     const q = document.getElementById('loginSearch').value.trim();
     const drop = document.getElementById('searchDropdown');
     if (!q) { drop.style.display='none'; return; }
     const matches = allEmployees.filter(e=> e.name.includes(q));
-    drop.innerHTML = matches.length ? matches.map(e=>`<div class="dropdown-item" onclick="window.selectEmp('${e.id}')"><img src="${getAvatarUrl(e.id)}" style="width:35px;height:35px;border-radius:50%;margin-left:10px;object-fit:cover;"><div><strong>${e.name}</strong><br><small>${e.job}</small></div></div>`).join('') : '<div style="padding:12px;">لا يوجد تطابق</div>';
+    drop.innerHTML = matches.length ? matches.map(e=>`<div class="dropdown-item" onclick="window.selectEmp('${e.id}')"><img src="${getAvatarUrl(e.id)}" style="width:35px;height:35px;border-radius:50%;margin-left:10px;"><div><strong>${e.name}</strong><br><small>${e.job}</small></div></div>`).join('') : '<div style="padding:12px;">لا يوجد تطابق</div>';
     drop.style.display = 'block';
 };
 window.selectEmp = function(id) {
@@ -377,7 +352,7 @@ document.getElementById('verifyIdBtn').onclick = ()=>{
 };
 document.getElementById('setPasswordBtn').onclick = ()=>{
     const pw = document.getElementById('newPassword').value, cpw = document.getElementById('confirmPassword').value;
-    if(pw.length<4) return alert('كلمة المرور قصيرة جداً');
+    if(pw.length<4) return alert('كلمة المرور قصيرة');
     if(pw!==cpw) return alert('كلمة المرور غير متطابقة');
     currentUser = selectedLoginEmp;
     if(document.getElementById('rememberMeCheckbox').checked) setRememberedUser(currentUser.id, pw);
@@ -399,70 +374,50 @@ function checkAutoLogin() {
 async function startApp() {
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='flex';
-    await initChannels(); initPresence(); initSignaling();
+    await initChannels(); initPresence(); initSignaling(); initPostsRealtime();
     renderStories(); renderChatsList();
     showNotif(`👋 أهلاً ${currentUser.name}`);
     if (isDirector()) document.getElementById('adminPanelBtn').style.display = 'block';
+    document.querySelector('.nav-item[data-section="chats"]').click();
 }
 
-// ======================= القنوات - الإصدار المحسّن =======================
+// ======================= القنوات =======================
 async function initChannels() {
     if (messagesChannel) supabaseClient.removeChannel(messagesChannel);
     messagesChannel = supabaseClient.channel('messages-channel')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
         const msg = payload.new;
         if (!msg) return;
-        const isGroup = msg.chat_id === 'group';
-
-        // تحديث المحادثة الجماعية للجميع فوراً
-        if (isGroup) {
-            await renderChatsList(); // تحديث آخر رسالة في القائمة
-            if (activeChat && activeChat.id === 'group') {
-                await fetchMessages('group');
-                scrollToBottom();
-            } else if (msg.sender !== currentUser.id) {
-                incrementUnread('group', msg.sender);
-                playTone('message');
-                showNotif(`📢 رسالة جديدة في المجموعة`);
-            }
+        if (msg.chat_id === 'group') {
+            await renderChatsList();
+            if (activeChat?.id === 'group') { await fetchMessages('group'); scrollToBottom(); }
+            else if (msg.sender !== currentUser.id) { incrementUnread('group', msg.sender); playTone('message'); showNotif('📢 رسالة جديدة في المجموعة'); }
         } else {
-            // دردشة خاصة
-            const chatId = msg.chat_id;
-            if (activeChat && currentChatId === chatId) {
-                await fetchMessages(chatId);
-                scrollToBottom();
-            } else if (msg.sender !== currentUser.id) {
-                incrementUnread(chatId, msg.sender);
-                renderChatsList();
-                playTone('message');
-                const sender = allEmployees.find(e=>e.id===msg.sender);
-                showNotif(`📩 رسالة من ${sender?.name||'مستخدم'}`);
-            }
+            if (activeChat && currentChatId === msg.chat_id) { await fetchMessages(msg.chat_id); scrollToBottom(); }
+            else if (msg.sender !== currentUser.id) { incrementUnread(msg.chat_id, msg.sender); renderChatsList(); playTone('message'); }
         }
     })
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
-        const deletedId = payload.old.id;
-        const el = document.querySelector(`[data-msg-id="${deletedId}"]`);
+        const el = document.querySelector(`[data-msg-id="${payload.old.id}"]`);
         if (el) el.remove();
-    })
-    .subscribe();
+    }).subscribe();
 
     if (typingChannel) supabaseClient.removeChannel(typingChannel);
-    typingChannel = supabaseClient.channel('typing');
-    typingChannel.on('broadcast', { event: 'typing_start' }, ({ payload }) => {
+    typingChannel = supabaseClient.channel('typing')
+    .on('broadcast', { event: 'typing_start' }, ({payload}) => {
         if (activeChat && payload.chat_id === activeChat.id && payload.user_id !== currentUser.id) {
-            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('typingIndicator').style.display='block';
             document.getElementById('typingIndicator').innerText = payload.name + ' يكتب...';
         }
     }).on('broadcast', { event: 'typing_stop' }, () => {
-        document.getElementById('typingIndicator').style.display = 'none';
+        document.getElementById('typingIndicator').style.display='none';
     }).subscribe();
 }
 
 function initPresence() {
     if (presenceChannel) supabaseClient.removeChannel(presenceChannel);
-    presenceChannel = supabaseClient.channel('online-users', { config: { presence: { key: currentUser.id } } });
-    presenceChannel.on('presence', { event: 'sync' }, () => {
+    presenceChannel = supabaseClient.channel('online-users', {config:{presence:{key:currentUser.id}}})
+    .on('presence', { event: 'sync' }, () => {
         onlineUsers.clear();
         const state = presenceChannel.presenceState();
         for (const key in state) if (key !== currentUser.id) onlineUsers.add(key);
@@ -474,81 +429,169 @@ function initPresence() {
 
 function initSignaling() {
     if (signalingChannel) supabaseClient.removeChannel(signalingChannel);
-    signalingChannel = supabaseClient.channel('signaling');
-    signalingChannel.on('broadcast', { event: 'offer' }, async ({ payload }) => {
+    signalingChannel = supabaseClient.channel('signaling')
+    .on('broadcast', { event: 'offer' }, async ({payload}) => {
         if (payload.target === currentUser.id && !isCallActive) {
-            pendingOffer = payload.sdp; pendingFrom = payload.from; pendingType = payload.type;
+            pendingOffer=payload.sdp; pendingFrom=payload.from; pendingType=payload.type;
             const caller = allEmployees.find(e=>e.id===payload.from);
             if (caller) { playTone('call'); showIncomingCall(caller.name, payload.type, payload.from); }
         }
-    }).on('broadcast', { event: 'answer' }, async ({ payload }) => {
+    }).on('broadcast', { event: 'answer' }, async ({payload}) => {
         if (payload.target === currentUser.id && peerConnection) await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-    }).on('broadcast', { event: 'ice' }, async ({ payload }) => {
+    }).on('broadcast', { event: 'ice' }, async ({payload}) => {
         if (payload.target === currentUser.id && peerConnection && payload.candidate) await peerConnection.addIceCandidate(new RTCIceCandidate(payload.candidate));
     }).on('broadcast', { event: 'end' }, () => {
         if (isCallActive) hangUp(false);
-        document.getElementById('incomingCall').style.display = 'none';
+        document.getElementById('incomingCall').style.display='none';
     }).subscribe();
 }
 
-// ======================= واجهات =======================
-function renderStories() {
-    const c = document.getElementById('storiesContainer');
-    let html = `<div class="online-user" onclick="promptChangeAvatar()" title="انقر لتغيير الصورة">
-        <img src="${getAvatarUrl(currentUser.id)}" class="story-avatar">
-        <div class="active-dot" style="background:var(--primary);"></div>
-        <span style="font-size:11px;">حسابي</span>
-    </div>`;
-    const online = allEmployees.filter(e=> e.id!==currentUser.id && onlineUsers.has(e.id));
-    html += online.length ? online.map(e=>`<div class="online-user" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatarUrl(e.id)}" class="story-avatar"><div class="active-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`).join('') : '<div style="padding:10px;color:gray;">لا متصلين حالياً</div>';
-    c.innerHTML = html;
+// ======================= منشورات (Realtime) =======================
+async function initPostsRealtime() {
+    if (postsChannel) supabaseClient.removeChannel(postsChannel);
+    postsChannel = supabaseClient.channel('posts-channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, async payload => {
+        renderPosts();
+        if (payload.new.user_id !== currentUser.id) {
+            const user = allEmployees.find(e=>e.id===payload.new.user_id);
+            showNotif(`🆕 منشور جديد من ${user?.name||'مستخدم'}`);
+        }
+    })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, () => renderPosts())
+    .subscribe();
+
+    if (likesChannel) supabaseClient.removeChannel(likesChannel);
+    likesChannel = supabaseClient.channel('likes-channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_likes' }, payload => updateLikeCount(payload.new.post_id))
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_likes' }, payload => updateLikeCount(payload.old.post_id))
+    .subscribe();
 }
 
-async function renderChatsList() {
-    const container = document.getElementById('chatsList');
-    const activeList = getActiveChats();
-    const groupUnread = unreadCounts['group'] || 0;
-    let lastGroupMsg = '';
-    try {
-        const { data } = await supabaseClient.from('messages').select('text').eq('chat_id','group').order('created_at',{ascending:false}).limit(1);
-        if (data?.length) lastGroupMsg = data[0].text.replace(/<[^>]*>/g,'').substring(0,40);
-    } catch(e) {}
-    let html = `<div class="chat-row" onclick="openChat('group','المجموعة العامة')">
-        <div style="position:relative"><img src="${getAvatarUrl('group')}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">${groupUnread>0?`<div class="unread-badge">${groupUnread}</div>`:''}</div>
-        <div class="chat-info"><h5>المجموعة العامة 📢</h5><p>${lastGroupMsg?escapeHtml(lastGroupMsg):'تواصل مع جميع الموظفين'}</p></div>
-    </div>`;
-    for (const chatId of activeList) {
-        if (chatId === 'group') continue;
-        const ids = chatId.split('_'); const other = ids.find(id=>id!==currentUser.id); if (!other) continue;
-        const emp = allEmployees.find(e=>e.id===other); if (!emp) continue;
-        const count = unreadCounts[chatId] || 0;
-        let lastMsg='', lastTime='';
-        try {
-            const { data:last } = await supabaseClient.from('messages').select('text,created_at').eq('chat_id',chatId).order('created_at',{ascending:false}).limit(1);
-            if (last?.length) { lastMsg=last[0].text.replace(/<[^>]*>/g,'').substring(0,40); lastTime=formatTimeAgo(last[0].created_at); }
-        } catch(e) {}
-        html += `<div class="chat-row" onclick="openChat('${emp.id}','${emp.name}')">
-            <div style="position:relative"><img src="${getAvatarUrl(emp.id)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">${count>0?`<div class="unread-badge">${count}</div>`:''}</div>
-            <div class="chat-info"><h5>${emp.name}</h5><p>${lastMsg?escapeHtml(lastMsg):'ابدأ المحادثة'}</p></div>
-            <div style="font-size:10px;color:gray;">${lastTime}</div>
+async function updateLikeCount(postId) {
+    const { count } = await supabaseClient.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', postId);
+    const span = document.querySelector(`.like-count[data-post-id="${postId}"]`);
+    if (span) span.innerText = count || 0;
+}
+
+async function renderPosts() {
+    if (!currentUser) return;
+    const { data: posts } = await supabaseClient.from('posts').select('*').order('created_at', { ascending: false }).limit(30);
+    if (!posts) { document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;">لا توجد منشورات بعد</div>'; return; }
+    const likesData = await supabaseClient.from('post_likes').select('post_id, user_id');
+    const userLikes = new Set((likesData.data||[]).filter(l=>l.user_id===currentUser.id).map(l=>l.post_id));
+    let html = '';
+    for (const post of posts) {
+        const user = allEmployees.find(e=>e.id===post.user_id) || {name:'مستخدم', id:post.user_id};
+        const avatar = getAvatarUrl(post.user_id);
+        const likeCount = (likesData.data||[]).filter(l=>l.post_id===post.id).length;
+        const isLiked = userLikes.has(post.id);
+        html += `
+        <div class="post-card" id="post-${post.id}">
+            <div class="post-header">
+                <img src="${avatar}" class="post-avatar" onclick="openChat('${post.user_id}','${user.name}')">
+                <div>
+                    <strong>${escapeHtml(user.name)}</strong>
+                    <div class="post-time">${formatTimeAgo(post.created_at)}</div>
+                </div>
+            </div>
+            <div class="post-body">${escapeHtml(post.text)}</div>
+            ${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}
+            <div class="post-actions">
+                <span onclick="toggleLike('${post.id}')" style="cursor:pointer;">
+                    <i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i>
+                    <span class="like-count" data-post-id="${post.id}">${likeCount}</span>
+                </span>
+                <span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>
+                ${(post.user_id===currentUser.id || isDirector()) ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}
+            </div>
         </div>`;
     }
-    container.innerHTML = html || '<div style="text-align:center;padding:40px;color:gray;">لا توجد محادثات بعد</div>';
+    document.getElementById('postsList').innerHTML = html;
+}
+
+async function createPost() {
+    const text = document.getElementById('newPostText').value.trim();
+    if (!text && !postImageFile) return alert('أدخل نصاً أو صورة');
+    let imageUrl = null;
+    if (postImageFile) {
+        const path = `posts/${currentUser.id}_${Date.now()}_${postImageFile.name}`;
+        const { error } = await supabaseClient.storage.from('post-images').upload(path, postImageFile);
+        if (error) { alert('فشل رفع الصورة'); return; }
+        imageUrl = supabaseClient.storage.from('post-images').getPublicUrl(path).data.publicUrl;
+    }
+    const { error } = await supabaseClient.from('posts').insert({
+        user_id: currentUser.id,
+        text: text || '(صورة)',
+        image_url: imageUrl,
+        created_at: new Date().toISOString()
+    });
+    if (error) { showNotif('فشل النشر: '+error.message); }
+    else {
+        document.getElementById('newPostText').value = '';
+        document.getElementById('postPreview').style.display='none';
+        postImageFile = null;
+        renderPosts();
+    }
+}
+
+function previewPostImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        postImageFile = file;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('postPreview').src = e.target.result;
+            document.getElementById('postPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+async function toggleLike(postId) {
+    const heart = document.getElementById(`heart-${postId}`);
+    if (!heart) return;
+    const isLiked = heart.classList.contains('liked');
+    if (isLiked) {
+        await supabaseClient.from('post_likes').delete().match({ post_id: postId, user_id: currentUser.id });
+    } else {
+        await supabaseClient.from('post_likes').insert({ post_id: postId, user_id: currentUser.id });
+    }
+}
+
+async function sharePost(postId) {
+    const { data } = await supabaseClient.from('posts').select('text,image_url').eq('id', postId).single();
+    if (data) {
+        const shareText = `📢 منشور من الزملاء:\n${data.text}` + (data.image_url ? `\n📷 ${data.image_url}` : '');
+        // مشاركة في المجموعة العامة
+        await supabaseClient.from('messages').insert({
+            chat_id: 'group',
+            sender: currentUser.id,
+            text: shareText,
+            created_at: new Date().toISOString()
+        });
+        showNotif('تمت مشاركة المنشور في المجموعة');
+    }
+}
+
+async function deletePost(postId) {
+    if (!confirm('حذف المنشور؟')) return;
+    await supabaseClient.from('posts').delete().eq('id', postId);
+    renderPosts();
 }
 
 // ======================= الدردشة =======================
 window.openChat = async (id, name) => {
     activeChat = { id, name };
-    const chatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
-    currentChatId = chatId;
-    markChatAsRead(chatId); addToActiveChats(chatId);
+    currentChatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
+    markChatAsRead(currentChatId); addToActiveChats(currentChatId);
     document.getElementById('chatHeaderName').innerText = name;
     document.getElementById('chatHeaderImg').src = getAvatarUrl(id);
     document.getElementById('deleteAllBtn').style.display = isDirector() ? 'inline-block' : 'none';
     document.getElementById('mainView').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
+    document.getElementById('postsScreen').style.display = 'none';
     document.getElementById('callsScreen').style.display = 'none';
-    await fetchMessages(chatId);
+    await fetchMessages(currentChatId);
     renderChatsList();
 };
 document.getElementById('closeChatBtn').onclick = ()=>{
@@ -566,12 +609,12 @@ async function fetchMessages(chatId) {
         const isMine = m.sender === currentUser.id;
         const timeStr = formatTime(m.created_at);
         let senderName = '';
-        if (activeChat.id==='group' && !isMine) {
+        if (activeChat?.id==='group' && !isMine) {
             const s = allEmployees.find(e=>e.id===m.sender);
-            if (s) senderName = `<div style="font-size:11px;color:var(--primary);margin-bottom:3px;">${s.name}</div>`;
+            if (s) senderName = `<div style="font-size:11px;color:var(--primary);">${s.name}</div>`;
         }
         const canDelete = isMine || isDirector();
-        const deleteBtn = canDelete ? `<button class="delete-msg-btn" onclick="deleteMessage('${m.id}')" title="حذف"><i class="fas fa-trash-alt"></i></button>` : '';
+        const deleteBtn = canDelete ? `<button class="delete-msg-btn" onclick="deleteMessage('${m.id}')"><i class="fas fa-trash-alt"></i></button>` : '';
         let content = '';
         if (m.file_url) {
             const fileName = m.file_name || 'ملف';
@@ -589,7 +632,6 @@ async function fetchMessages(chatId) {
     }).join('');
     scrollToBottom();
 }
-
 function getFileIcon(fileName) {
     const ext = fileName.split('.').pop().toLowerCase();
     if (['jpg','jpeg','png','gif','bmp'].includes(ext)) return '<i class="fas fa-file-image"></i>';
@@ -598,181 +640,186 @@ function getFileIcon(fileName) {
     if (['xls','xlsx'].includes(ext)) return '<i class="fas fa-file-excel"></i>';
     return '<i class="fas fa-file"></i>';
 }
-
 async function sendMessage() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
-    if (!text || !activeChat) return;
+    if(!text || !activeChat) return;
     const chatId = activeChat.id==='group'?'group':[currentUser.id, activeChat.id].sort().join('_');
     addToActiveChats(chatId);
     const { error } = await supabaseClient.from('messages').insert({ chat_id: chatId, sender: currentUser.id, text, created_at: new Date().toISOString() });
     if (!error) { input.value = ''; await fetchMessages(chatId); renderChatsList(); }
 }
-
 document.getElementById('sendBtn').onclick = sendMessage;
 document.getElementById('msgInput').onkeydown = (e) => {
-    if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    if (activeChat && activeChat.id!=='group' && typingChannel) {
+    if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if(activeChat && activeChat.id!=='group' && typingChannel) {
         typingChannel.send({ type:'broadcast', event:'typing_start', payload:{ chat_id:activeChat.id, user_id:currentUser.id, name:currentUser.name } });
-        if (window.typingTimeout) clearTimeout(window.typingTimeout);
+        if(window.typingTimeout) clearTimeout(window.typingTimeout);
         window.typingTimeout = setTimeout(()=>{ typingChannel.send({ type:'broadcast', event:'typing_stop', payload:{ chat_id:activeChat.id, user_id:currentUser.id } }); }, 2000);
     }
 };
 
-// ======================= رفع الملفات =======================
 async function handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file || !currentChatId) return;
     if (file.size > 20 * 1024 * 1024) return showNotif('حجم الملف كبير جداً', '❌');
     showNotif('جاري رفع الملف...', '⏳');
     const filePath = `${currentChatId}/${Date.now()}_${file.name}`;
-    const { error } = await supabaseClient.storage.from('chat-files').upload(filePath, file, { cacheControl: '3600', upsert: true });
-    if (error) { showNotif('فشل الرفع: ' + error.message, '❌'); return; }
+    const { error } = await supabaseClient.storage.from('chat-files').upload(filePath, file, {cacheControl:'3600',upsert:true});
+    if (error) { showNotif('فشل الرفع: '+error.message); return; }
     const { data: urlData } = supabaseClient.storage.from('chat-files').getPublicUrl(filePath);
     const msgText = document.getElementById('msgInput').value.trim();
-    const { error: insertError } = await supabaseClient.from('messages').insert({
+    await supabaseClient.from('messages').insert({
         chat_id: currentChatId, sender: currentUser.id, text: msgText || '(ملف)', file_url: urlData.publicUrl, file_name: file.name, created_at: new Date().toISOString()
     });
-    if (insertError) showNotif('فشل حفظ الرسالة', '❌');
-    else { document.getElementById('msgInput').value = ''; await fetchMessages(currentChatId); renderChatsList(); }
+    document.getElementById('msgInput').value = '';
     document.getElementById('fileInput').value = '';
+    await fetchMessages(currentChatId);
 }
 
-// ======================= المكالمات المُحسَّنة =======================
+async function deleteMessage(msgId) {
+    if (!confirm('حذف الرسالة؟')) return;
+    await supabaseClient.from('messages').delete().eq('id', msgId);
+}
+async function deleteAllMessages() {
+    if (!isDirector() || !currentChatId) return;
+    if (!confirm('حذف جميع رسائل المحادثة؟')) return;
+    await supabaseClient.from('messages').delete().eq('chat_id', currentChatId);
+    document.getElementById('messagesContainer').innerHTML = '<div style="text-align:center;margin-top:50px;">تم حذف جميع الرسائل 🗑️</div>';
+    renderChatsList();
+}
+document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
+
+// ======================= المكالمات (محسّنة) =======================
 window.startCall = async function(type) {
-    if (!activeChat || activeChat.id==='group') return showNotif('اختر محادثة خاصة أولاً','⚠️');
+    if(!activeChat || activeChat.id==='group') return showNotif('اختر محادثة خاصة','⚠️');
     targetUser = allEmployees.find(e=>e.id===activeChat.id);
-    if (!targetUser) return;
-    // التحقق من HTTPS
+    if(!targetUser) return;
     if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        showNotif('الكاميرا تحتاج HTTPS للعمل. استخدم localhost أو شهادة SSL.', '🔒');
-        return;
+        return showNotif('الكاميرا تحتاج HTTPS. استخدم localhost أو شهادة SSL.','🔒');
     }
-    currentCallType = type;
-    isCallActive = true;
-    callStartTime = null;
+    currentCallType = type; isCallActive = true; callStartTime = null;
     await setupCall(false);
 };
-
 async function setupCall(isAnswer) {
     try {
-        // استخدام TURN server مجاني لتحسين الاتصال عبر NAT
         const iceServers = [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
             { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
         ];
-        const constraints = { 
-            audio: true,
-            video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false 
-        };
+        const constraints = { audio: true, video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false };
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
         document.getElementById('localVideo').srcObject = localStream;
         document.getElementById('callOverlay').style.display = 'flex';
         document.getElementById('callPartnerName').innerText = targetUser.name;
-
-        if (peerConnection) peerConnection.close();
+        if(peerConnection) peerConnection.close();
         peerConnection = new RTCPeerConnection({ iceServers });
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
         peerConnection.ontrack = e => {
-            if (e.streams[0]) {
-                document.getElementById('remoteVideo').srcObject = e.streams[0];
-                document.getElementById('callStatus').innerHTML = '✅ متصل';
-            }
+            if(e.streams[0]) { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('callStatus').innerHTML='✅ متصل'; }
         };
         peerConnection.onicecandidate = e => {
-            if (e.candidate) signalingChannel.send({ type:'broadcast', event:'ice', payload:{ candidate:e.candidate, target:targetUser.id } });
+            if(e.candidate) signalingChannel.send({ type:'broadcast', event:'ice', payload:{ candidate:e.candidate, target:targetUser.id } });
         };
-        if (isAnswer) {
+        if(isAnswer) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
+            const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer);
             signalingChannel.send({ type:'broadcast', event:'answer', payload:{ sdp:peerConnection.localDescription, from:currentUser.id, target:targetUser.id } });
             callStartTime = Date.now();
         } else {
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
+            const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer);
             signalingChannel.send({ type:'broadcast', event:'offer', payload:{ sdp:peerConnection.localDescription, from:currentUser.id, target:targetUser.id, type:currentCallType } });
-            playTone('call');
-            callStartTime = Date.now();
+            playTone('call'); callStartTime = Date.now();
         }
-    } catch (err) {
+    } catch(err) {
         console.error(err);
-        showNotif('فشل الوصول للكاميرا/الميكروفون. تأكد من السماح بالوصول.', '❌');
+        showNotif('فشل الوصول للكاميرا/الميكروفون. تأكد من السماح بالوصول في المتصفح.','❌');
         hangUp(true);
     }
 }
-
-window.hangUp = function(sendSignal = true) {
-    if (peerConnection) peerConnection.close();
-    if (localStream) localStream.getTracks().forEach(t=>t.stop());
-    if (isCallActive && callStartTime && targetUser && currentUser) addCallLog(currentUser.id, targetUser.id, currentCallType, true, Math.floor((Date.now()-callStartTime)/1000));
-    else if (!isCallActive && pendingFrom) addCallLog(pendingFrom, currentUser.id, pendingType, false, 0);
-    if (sendSignal && isCallActive && targetUser) signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:targetUser.id } });
+window.hangUp = function(sendSignal=true) {
+    if(peerConnection) peerConnection.close();
+    if(localStream) localStream.getTracks().forEach(t=>t.stop());
+    if(isCallActive && callStartTime && targetUser) addCallLog(currentUser.id, targetUser.id, currentCallType, true, Math.floor((Date.now()-callStartTime)/1000));
+    else if(!isCallActive && pendingFrom) addCallLog(pendingFrom, currentUser.id, pendingType, false, 0);
+    if(sendSignal && isCallActive && targetUser) signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:targetUser.id } });
     document.getElementById('callOverlay').style.display = 'none';
     isCallActive = false; targetUser = null; pendingOffer = null; pendingFrom = null; pendingType = null; callStartTime = null;
 };
-
 document.getElementById('hangupBtn').onclick = ()=> hangUp(true);
 document.getElementById('micBtn').onclick = ()=>{
-    if (localStream) { const t = localStream.getAudioTracks()[0]; if (t) { t.enabled = !t.enabled; document.getElementById('micBtn').innerHTML = t.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>'; } }
+    if(localStream){ const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; document.getElementById('micBtn').innerHTML=t.enabled?'<i class="fas fa-microphone"></i>':'<i class="fas fa-microphone-slash"></i>'; } }
 };
 document.getElementById('camBtn').onclick = ()=>{
-    if (localStream) { const t = localStream.getVideoTracks()[0]; if (t) { t.enabled = !t.enabled; document.getElementById('camBtn').innerHTML = t.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>'; } }
+    if(localStream){ const t=localStream.getVideoTracks()[0]; if(t){ t.enabled=!t.enabled; document.getElementById('camBtn').innerHTML=t.enabled?'<i class="fas fa-video"></i>':'<i class="fas fa-video-slash"></i>'; } }
 };
-
 function showIncomingCall(name, type, fromId) {
     const div = document.getElementById('incomingCall');
     div.innerHTML = `<div style="padding:20px;"><h3><i class="fas fa-phone-alt"></i> مكالمة واردة</h3><p>${name} يطلب ${type==='video'?'فيديو':'صوتية'}</p>
-    <button id="acceptCallBtn" style="background:#10b981; color:white; border:none; border-radius:20px; padding:10px 20px; margin:5px;">قبول</button>
-    <button id="rejectCallBtn" style="background:#f44336; color:white; border:none; border-radius:20px; padding:10px 20px;">رفض</button></div>`;
+    <button id="acceptCallBtn" style="background:#10b981;color:white;border:none;border-radius:20px;padding:10px 20px;margin:5px;">قبول</button>
+    <button id="rejectCallBtn" style="background:#f44336;color:white;border:none;border-radius:20px;padding:10px 20px;">رفض</button></div>`;
     div.style.display = 'block';
     document.getElementById('acceptCallBtn').onclick = async ()=>{ div.style.display='none'; targetUser = allEmployees.find(e=>e.id===fromId); currentCallType=type; isCallActive=true; await setupCall(true); };
     document.getElementById('rejectCallBtn').onclick = ()=>{ div.style.display='none'; addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); };
     setTimeout(()=>{ if(div.style.display==='block') { div.style.display='none'; addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); } }, 30000);
 }
-
 document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
 document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
 
 // ======================= سجل المكالمات =======================
-function addCallLog(callerId, calleeId, callType, answered, durationSec) {
-    if (!currentUser) return;
-    const entry = { id: Date.now()+'_'+Math.random().toString(36).substr(2,6), caller_id:callerId, callee_id:calleeId, call_type:callType, answered, missed:!answered, duration_seconds:durationSec||0, timestamp: new Date().toISOString() };
-    const logs = JSON.parse(localStorage.getItem(`call_logs_${callerId}`)||'[]'); logs.unshift(entry); localStorage.setItem(`call_logs_${callerId}`, JSON.stringify(logs));
-    if (callerId!==calleeId) { const l2 = JSON.parse(localStorage.getItem(`call_logs_${calleeId}`)||'[]'); l2.unshift(entry); localStorage.setItem(`call_logs_${calleeId}`, JSON.stringify(l2)); }
-    if (document.getElementById('callsScreen').style.display==='block') renderCallsLog();
+function addCallLog(callerId, calleeId, type, answered, dur) {
+    const entry = { id: Date.now()+'_'+Math.random().toString(36).substr(2,6), caller_id:callerId, callee_id:calleeId, call_type:type, answered, missed:!answered, duration_seconds:dur||0, timestamp:new Date().toISOString() };
+    const logs1 = JSON.parse(localStorage.getItem(`call_logs_${callerId}`)||'[]'); logs1.unshift(entry); localStorage.setItem(`call_logs_${callerId}`, JSON.stringify(logs1));
+    if(callerId!==calleeId) { const logs2 = JSON.parse(localStorage.getItem(`call_logs_${calleeId}`)||'[]'); logs2.unshift(entry); localStorage.setItem(`call_logs_${calleeId}`, JSON.stringify(logs2)); }
+    if(document.getElementById('callsScreen').style.display==='block') renderCallsLog();
 }
-
 function formatDuration(sec) { const m=Math.floor(sec/60), s=sec%60; return m?`${m}د ${s}ث`:`${s}ث`; }
-async function renderCallsLog() {
-    if (!currentUser) return;
+function renderCallsLog() {
+    if(!currentUser) return;
     const logs = JSON.parse(localStorage.getItem(`call_logs_${currentUser.id}`)||'[]');
     const c = document.getElementById('callsList');
-    if (!logs.length) { c.innerHTML='<div style="text-align:center;padding:40px;">لا توجد مكالمات</div>'; return; }
+    if(!logs.length) { c.innerHTML='<div style="text-align:center;padding:40px;">لا توجد مكالمات</div>'; return; }
     c.innerHTML = logs.map(log=>{
         const pid = log.caller_id===currentUser.id ? log.callee_id : log.caller_id;
-        const partner = allEmployees.find(e=>e.id===pid); if (!partner) return '';
+        const partner = allEmployees.find(e=>e.id===pid); if(!partner) return '';
         const ic = log.call_type==='video'?'<i class="fas fa-video"></i>':'<i class="fas fa-phone-alt"></i>';
-        return `<div style="display:flex;align-items:center;padding:12px;background:white;border-radius:16px;margin-bottom:8px;cursor:pointer;" onclick="window.openChat('${partner.id}','${partner.name}')">
+        return `<div style="display:flex;align-items:center;padding:12px;background:white;border-radius:16px;margin-bottom:8px;" onclick="window.openChat('${partner.id}','${partner.name}')">
             <div style="width:45px;text-align:center;font-size:18px;${log.missed?'color:#f44336;':''}">${ic}</div>
-            <div style="flex:1;margin-right:10px;"><div style="font-weight:bold;">${partner.name}</div><div style="font-size:12px;color:gray;">${log.missed?'فائتة • ':''}${log.duration_seconds?formatDuration(log.duration_seconds)+' • ':''}${formatTimeAgo(log.timestamp)}</div></div>
-            <button onclick="event.stopPropagation();window.startCallWithUser('${partner.id}','${log.call_type}')" style="background:none;border:1px solid var(--primary);border-radius:20px;padding:5px 12px;cursor:pointer;color:var(--primary);">معاودة</button>
+            <div style="flex:1;margin-right:10px;"><div>${partner.name}</div><div style="font-size:12px;color:gray;">${log.missed?'فائتة • ':''}${log.duration_seconds?formatDuration(log.duration_seconds)+' • ':''}${formatTimeAgo(log.timestamp)}</div></div>
+            <button onclick="event.stopPropagation();window.startCallWithUser('${partner.id}','${log.call_type}')" style="background:none;border:1px solid var(--primary);border-radius:20px;padding:5px 12px;color:var(--primary);">معاودة</button>
         </div>`;
     }).join('');
 }
-
 window.startCallWithUser = function(userId, type) {
     const p = allEmployees.find(e=>e.id===userId);
-    if (p) openChat(userId, p.name);
-    setTimeout(()=>{ if (type==='audio') startCall('audio'); else startCall('video'); }, 500);
+    if(p) openChat(userId, p.name);
+    setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500);
 };
 
-// ======================= الإعدادات والإدارة =======================
-document.getElementById('adminIcon').onclick = ()=> { document.getElementById('settingsModal').style.display='block'; document.getElementById('adminPanelBtn').style.display = isDirector() ? 'block' : 'none'; };
+// ======================= التنقل =======================
+document.querySelectorAll('.nav-item').forEach(item=>{
+    item.onclick = function() {
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+        this.classList.add('active');
+        const section = this.dataset.section;
+        document.getElementById('mainView').style.display = (section==='chats'||section==='posts')?'flex':'none';
+        document.getElementById('chatsList').style.display = section==='chats'?'block':'none';
+        document.getElementById('postsScreen').style.display = section==='posts'?'block':'none';
+        document.getElementById('callsScreen').style.display = section==='calls'?'block':'none';
+        document.getElementById('chatScreen').style.display = 'none';
+        if(section==='chats') renderChatsList();
+        else if(section==='posts') renderPosts();
+        else if(section==='calls') renderCallsLog();
+    };
+});
+document.getElementById('closeCallsBtn').onclick = ()=>{ document.querySelector('.nav-item[data-section="chats"]').click(); };
+
+// ======================= الإعدادات =======================
+document.getElementById('adminIcon').onclick = ()=> { document.getElementById('settingsModal').style.display='block'; document.getElementById('adminPanelBtn').style.display=isDirector()?'block':'none'; };
 document.getElementById('logoutBtn').onclick = ()=>{ clearRememberedUser(); logout(); };
 function logout() {
-    [messagesChannel, typingChannel, presenceChannel, signalingChannel].forEach(ch => { if (ch) supabaseClient.removeChannel(ch); });
+    [messagesChannel, typingChannel, presenceChannel, signalingChannel, postsChannel, likesChannel].forEach(ch => { if(ch) supabaseClient.removeChannel(ch); });
     currentUser = null; onlineUsers.clear();
     document.getElementById('app').style.display='none';
     document.getElementById('loginScreen').style.display='block';
@@ -784,10 +831,10 @@ function logout() {
     document.getElementById('adminPanel').style.display='none';
 }
 window.toggleAdminPanel = ()=> {
-    if (!isDirector()) return;
+    if(!isDirector()) return;
     const p = document.getElementById('adminPanel');
     p.style.display = p.style.display==='block'?'none':'block';
-    if (p.style.display==='block') renderDeleteEmployeeList();
+    if(p.style.display==='block') renderDeleteEmployeeList();
 };
 function renderDeleteEmployeeList() {
     const c = document.getElementById('empDeleteList');
@@ -795,40 +842,20 @@ function renderDeleteEmployeeList() {
 }
 window.addEmployee = async ()=>{
     const n=document.getElementById('newEmpName').value.trim(), id=document.getElementById('newEmpId').value.trim(), j=document.getElementById('newEmpJob').value.trim();
-    if (!n||!id||!j) return alert('املأ جميع الحقول');
+    if(!n||!id||!j) return alert('املأ جميع الحقول');
     allEmployees.push({id, name:n, job:j});
     let csv = "الرقم الوظيفي;اللقب والاسم;الوظيفة\n"+allEmployees.map(e=>`${e.id};${e.name};${e.job}`).join('\n');
     const blob=new Blob(["\uFEFF"+csv],{type:"text/csv"}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='employees.csv'; a.click();
     showNotif('تمت الإضافة (سيتم تنزيل CSV)','✅');
 };
 window.deleteEmployee = async (id)=>{
-    if (!isDirector() || id===DIRECTOR_ID) return;
+    if(!isDirector()||id===DIRECTOR_ID) return;
     allEmployees = allEmployees.filter(e=>e.id!==id);
     let csv = "الرقم الوظيفي;اللقب والاسم;الوظيفة\n"+allEmployees.map(e=>`${e.id};${e.name};${e.job}`).join('\n');
     const blob=new Blob(["\uFEFF"+csv],{type:"text/csv"}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='employees.csv'; a.click();
 };
 
-// التنقل
-document.querySelectorAll('.nav-item').forEach(item=>{
-    item.onclick = ()=>{
-        document.querySelectorAll('.nav-item').forEach(n=> n.classList.remove('active'));
-        item.classList.add('active');
-        if (item.dataset.section==='chats') {
-            document.getElementById('mainView').style.display='flex';
-            document.getElementById('callsScreen').style.display='none';
-            document.getElementById('chatScreen').style.display='none';
-            renderChatsList();
-        } else {
-            document.getElementById('mainView').style.display='none';
-            document.getElementById('callsScreen').style.display='block';
-            renderCallsLog();
-        }
-    };
-});
-document.getElementById('closeCallsBtn').onclick = ()=>{ document.getElementById('callsScreen').style.display='none'; document.getElementById('mainView').style.display='flex'; };
-
-document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
-
+// ======================= بدء =======================
 loadEmployees();
 </script>
 </body>
