@@ -180,17 +180,16 @@
     let posts = [];
     let unreadCounts = {};
     
-    // رابط ملف CSV على GitHub (قم بتغيير الرابط إلى رابط ملفك)
-    const CSV_URL = 'https://raw.githubusercontent.com/yourusername/yourrepo/main/employees.csv';
+    // رابط ملف CSV على GitHub - قم بتغيير هذا الرابط إلى رابط ملفك الحقيقي
+    const CSV_URL = 'https://raw.githubusercontent.com/username/repo/main/employees.csv';
     
     // تحميل بيانات الموظفين من ملف CSV
     async function loadEmployeesFromCSV() {
         try {
-            // محاولة تحميل الملف من GitHub
             const response = await fetch(CSV_URL);
             
             if (!response.ok) {
-                throw new Error('فشل تحميل الملف');
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const csvText = await response.text();
@@ -198,22 +197,27 @@
             
         } catch (error) {
             console.error('خطأ في تحميل CSV:', error);
-            // في حال فشل التحميل، استخدم البيانات الافتراضية
-            useDefaultEmployees();
+            document.getElementById('statusBar').innerHTML = `❌ فشل تحميل الملف: ${error.message}<br>تأكد من صحة الرابط`;
         }
     }
     
     function parseCSV(csvText) {
-        const lines = csvText.split('\n').filter(line => line.trim());
+        // إزالة BOM إذا وجد (الأحرف المخفية في بداية الملف)
+        let cleanText = csvText;
+        if (cleanText.charCodeAt(0) === 0xFEFF) {
+            cleanText = cleanText.slice(1);
+        }
+        
+        const lines = cleanText.split('\n').filter(line => line.trim());
         
         if (lines.length === 0) {
-            useDefaultEmployees();
+            document.getElementById('statusBar').innerHTML = '❌ الملف فارغ';
             return;
         }
         
-        // تخطي رأس الملف إذا وجد
+        // تخطي سطر الرأس (الذي يحتوي على "الرقم الوظيفي;اللقب والاسم;الوظيفة")
         let startIndex = 0;
-        const firstLine = lines[0].toLowerCase();
+        const firstLine = lines[0];
         if (firstLine.includes('الرقم') || firstLine.includes('id') || firstLine.includes('اسم')) {
             startIndex = 1;
         }
@@ -224,15 +228,8 @@
             const line = lines[i].trim();
             if (!line) continue;
             
-            // تقسيم السطر (يدعم الفاصلة أو الفاصلة المنقوطة)
-            let parts;
-            if (line.includes(';')) {
-                parts = line.split(';');
-            } else if (line.includes(',')) {
-                parts = line.split(',');
-            } else {
-                parts = line.split('\t');
-            }
+            // تقسيم السطر باستخدام الفاصلة المنقوطة (;)
+            const parts = line.split(';');
             
             if (parts.length >= 2) {
                 const employee = {
@@ -245,37 +242,18 @@
         }
         
         if (allEmployees.length === 0) {
-            useDefaultEmployees();
+            document.getElementById('statusBar').innerHTML = '❌ لم يتم العثور على بيانات صالحة في الملف';
         } else {
-            // حفظ البيانات في localStorage
+            // حفظ البيانات في localStorage كنسخة احتياطية
             localStorage.setItem('employees_backup', JSON.stringify(allEmployees));
             document.getElementById('statusBar').innerHTML = `✅ تم تحميل ${allEmployees.length} موظف`;
             document.getElementById('searchPhase').style.display = 'block';
+            document.getElementById('statusBar').style.display = 'none';
         }
-    }
-    
-    function useDefaultEmployees() {
-        // البيانات الافتراضية في حال فشل تحميل CSV
-        allEmployees = [
-            { id: "1098107010228600", name: "أحمد المدير", job: "مدير عام" },
-            { id: "1001", name: "محمد عبدالله", job: "مدير الموارد البشرية" },
-            { id: "1002", name: "سارة أحمد", job: "محاسبة" },
-            { id: "1003", name: "خالد محمد", job: "تطوير الأعمال" },
-            { id: "1004", name: "نورة سعد", job: "خدمة العملاء" },
-            { id: "1005", name: "عمر إبراهيم", job: "تقنية معلومات" }
-        ];
-        
-        document.getElementById('statusBar').innerHTML = `✅ ${allEmployees.length} موظف (افتراضي)`;
-        document.getElementById('searchPhase').style.display = 'block';
     }
     
     // تحميل البيانات من localStorage
-    function loadData() {
-        const savedEmployees = localStorage.getItem('employees_backup');
-        if (savedEmployees && allEmployees.length === 0) {
-            allEmployees = JSON.parse(savedEmployees);
-        }
-        
+    function loadLocalData() {
         const savedPosts = localStorage.getItem('posts');
         if (savedPosts) posts = JSON.parse(savedPosts);
         
@@ -303,8 +281,8 @@
         } else {
             dropdown.innerHTML = matches.map(emp => `
                 <div class="dropdown-item" onclick="selectEmployee('${emp.id}')">
-                    <div style="width:40px;height:40px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;">${emp.name.charAt(0)}</div>
-                    <div><strong>${emp.name}</strong><br><small>${emp.job}</small></div>
+                    <div style="width:40px;height:40px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">${emp.name.charAt(0)}</div>
+                    <div style="text-align:right;"><strong>${emp.name}</strong><br><small style="color:gray;">${emp.job}</small></div>
                 </div>
             `).join('');
         }
@@ -314,7 +292,7 @@
     let selectedEmployee = null;
     function selectEmployee(id) {
         selectedEmployee = allEmployees.find(e => e.id === id);
-        document.getElementById('selectedEmpName').innerHTML = `👤 ${selectedEmployee.name}<br><small>${selectedEmployee.job}</small>`;
+        document.getElementById('selectedEmpName').innerHTML = `👤 ${selectedEmployee.name}<br><small style="color:gray;">${selectedEmployee.job}</small>`;
         document.getElementById('searchPhase').style.display = 'none';
         document.getElementById('credentialsPhase').style.display = 'block';
         document.getElementById('searchDropdown').style.display = 'none';
@@ -334,7 +312,7 @@
         const newPass = document.getElementById('newPassword').value;
         const confirmPass = document.getElementById('confirmPassword').value;
         if (newPass.length < 3) {
-            showNotification('كلمة المرور قصيرة جداً', '⚠️');
+            showNotification('كلمة المرور قصيرة جداً (3 أحرف على الأقل)', '⚠️');
             return;
         }
         if (newPass !== confirmPass) {
@@ -405,7 +383,7 @@
         
         const others = allEmployees.filter(e => e.id !== currentUser.id);
         html += others.map(emp => `
-            <div class="online-user" onclick="openChat('${emp.id}', '${emp.name}')">
+            <div class="online-user" onclick="openChat('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')">
                 <img src="${getAvatar(emp.id)}" class="story-avatar">
                 ${isUserOnline(emp.id) ? '<div class="active-dot"></div>' : ''}
                 <span style="font-size:11px;">${emp.name.split(' ')[0]}</span>
@@ -472,7 +450,10 @@
         
         document.getElementById('chatHeaderName').innerText = userName;
         document.getElementById('chatHeaderImg').src = getAvatar(userId);
-        document.getElementById('deleteChatBtn').style.display = currentUser.id === '1098107010228600' ? 'inline-block' : 'none';
+        
+        // المدير (بوخضرة زواوي) يمكنه حذف المحادثات
+        const isDirector = currentUser.id === '1098107010228600';
+        document.getElementById('deleteChatBtn').style.display = isDirector ? 'inline-block' : 'none';
         
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('chatScreen').style.display = 'flex';
@@ -541,7 +522,7 @@
         }
         
         if (chats.size === 0) {
-            container.innerHTML = '<div style="text-align:center;padding:40px;color:gray;">💬 لا توجد محادثات بعد</div>';
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:gray;">💬 لا توجد محادثات بعد<br><small>ابحث عن موظف وابدأ الدردشة</small></div>';
             return;
         }
         
@@ -559,10 +540,10 @@
             const unread = unreadCounts[chatId] || 0;
             
             html += `
-                <div class="chat-row" onclick="openChat('${emp.id}', '${emp.name}')">
+                <div class="chat-row" onclick="openChat('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')">
                     <img src="${getAvatar(emp.id)}" style="width:50px;height:50px;border-radius:50%;">
                     <div class="chat-info">
-                        <h5>${emp.name}</h5>
+                        <h5>${escapeHtml(emp.name)}</h5>
                         <p>${escapeHtml(lastMsg)}</p>
                     </div>
                     ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
@@ -599,25 +580,28 @@
         `;
         
         if (posts.length === 0) {
-            html += '<div style="text-align:center;padding:40px;color:gray;">لا توجد منشورات بعد</div>';
+            html += '<div style="text-align:center;padding:40px;color:gray;">لا توجد منشورات بعد<br><small>كن أول من ينشر!</small></div>';
         } else {
-            html += posts.map(post => {
+            // عرض آخر 50 منشور فقط
+            const recentPosts = [...posts].reverse().slice(0, 50);
+            html += recentPosts.map(post => {
                 const user = allEmployees.find(e => e.id === post.userId) || { name: 'مستخدم', id: post.userId };
                 const isLiked = post.likes?.includes(currentUser.id);
                 const time = new Date(post.time).toLocaleString('ar');
+                const shortName = user.name.length > 20 ? user.name.substring(0, 20) + '...' : user.name;
                 
                 return `
                     <div class="post-card">
                         <div class="post-header">
-                            <img src="${getAvatar(post.userId)}" class="post-avatar" onclick="openChat('${post.userId}', '${user.name}')">
-                            <div><strong>${user.name}</strong><br><small style="color:gray;">${time}</small></div>
+                            <img src="${getAvatar(post.userId)}" class="post-avatar" onclick="openChat('${post.userId}', '${user.name.replace(/'/g, "\\'")}')">
+                            <div><strong>${escapeHtml(shortName)}</strong><br><small style="color:gray;">${time}</small></div>
                         </div>
                         <div class="post-body">${escapeHtml(post.text)}</div>
                         <div class="post-actions">
                             <span onclick="toggleLike('${post.id}')">
                                 <i class="fas fa-heart" style="color:${isLiked ? '#e91e63' : 'gray'}"></i> ${post.likes?.length || 0}
                             </span>
-                            <span onclick="shareToChat('${post.id}')"><i class="fas fa-comment"></i> مشاركة</span>
+                            <span onclick="shareToChat('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>
                             ${(post.userId === currentUser.id || currentUser.id === '1098107010228600') ? 
                                 `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}
                         </div>
@@ -643,6 +627,9 @@
             time: new Date().toISOString(),
             likes: []
         });
+        
+        // الاحتفاظ بآخر 200 منشور فقط
+        if (posts.length > 200) posts = posts.slice(0, 200);
         
         savePosts();
         document.getElementById('newPostText').value = '';
@@ -753,9 +740,11 @@
     
     // بدء التحميل
     async function init() {
-        loadData();
+        loadLocalData();
         await loadEmployeesFromCSV();
-        checkAutoLogin();
+        if (allEmployees.length > 0) {
+            checkAutoLogin();
+        }
     }
     
     init();
