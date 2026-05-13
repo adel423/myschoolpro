@@ -83,6 +83,21 @@
         .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; z-index: 10000; display: none; font-size: 13px; }
         .settings-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 20px; z-index: 3000; display: none; width: 90%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .option-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; background: white; border-radius: 12px; cursor: pointer; text-align: center; }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -90,8 +105,10 @@
 <div id="loginScreen" class="login-screen">
     <h1><i class="fas fa-comments"></i> Messenger Pro</h1>
     <p style="color:var(--text-muted); margin-bottom: 20px;">نظام التواصل الداخلي</p>
-    <div id="statusBar" style="font-size:12px; margin:10px 0; color: var(--text-muted);">⏳ جاري التحميل...</div>
-    <div id="searchPhase">
+    <div id="statusBar" style="font-size:12px; margin:10px 0; color: var(--text-muted);">
+        <span class="loading-spinner"></span> جاري تحميل بيانات الموظفين...
+    </div>
+    <div id="searchPhase" style="display:none;">
         <input type="text" id="loginSearch" class="input-field" placeholder="🔍 اكتب اسم الموظف..." oninput="searchEmployees()" autocomplete="off">
         <div id="searchDropdown" class="dropdown-list"></div>
     </div>
@@ -156,37 +173,114 @@
 
 <script>
     // ======================= بيانات الموظفين =======================
-    let allEmployees = [
-        { id: "1098107010228600", name: "أحمد المدير", job: "مدير عام" },
-        { id: "1001", name: "محمد عبدالله", job: "مدير الموارد البشرية" },
-        { id: "1002", name: "سارة أحمد", job: "محاسبة" },
-        { id: "1003", name: "خالد محمد", job: "تطوير الأعمال" },
-        { id: "1004", name: "نورة سعد", job: "خدمة العملاء" },
-        { id: "1005", name: "عمر إبراهيم", job: "تقنية معلومات" }
-    ];
-    
+    let allEmployees = [];
     let currentUser = null;
     let activeChat = null;
-    let messages = {}; // تخزين الرسائل لكل محادثة
+    let messages = {};
     let posts = [];
     let unreadCounts = {};
     
+    // رابط ملف CSV على GitHub (قم بتغيير الرابط إلى رابط ملفك)
+    const CSV_URL = 'https://raw.githubusercontent.com/yourusername/yourrepo/main/employees.csv';
+    
+    // تحميل بيانات الموظفين من ملف CSV
+    async function loadEmployeesFromCSV() {
+        try {
+            // محاولة تحميل الملف من GitHub
+            const response = await fetch(CSV_URL);
+            
+            if (!response.ok) {
+                throw new Error('فشل تحميل الملف');
+            }
+            
+            const csvText = await response.text();
+            parseCSV(csvText);
+            
+        } catch (error) {
+            console.error('خطأ في تحميل CSV:', error);
+            // في حال فشل التحميل، استخدم البيانات الافتراضية
+            useDefaultEmployees();
+        }
+    }
+    
+    function parseCSV(csvText) {
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length === 0) {
+            useDefaultEmployees();
+            return;
+        }
+        
+        // تخطي رأس الملف إذا وجد
+        let startIndex = 0;
+        const firstLine = lines[0].toLowerCase();
+        if (firstLine.includes('الرقم') || firstLine.includes('id') || firstLine.includes('اسم')) {
+            startIndex = 1;
+        }
+        
+        allEmployees = [];
+        
+        for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            // تقسيم السطر (يدعم الفاصلة أو الفاصلة المنقوطة)
+            let parts;
+            if (line.includes(';')) {
+                parts = line.split(';');
+            } else if (line.includes(',')) {
+                parts = line.split(',');
+            } else {
+                parts = line.split('\t');
+            }
+            
+            if (parts.length >= 2) {
+                const employee = {
+                    id: parts[0].trim(),
+                    name: parts[1].trim(),
+                    job: parts[2] ? parts[2].trim() : 'موظف'
+                };
+                allEmployees.push(employee);
+            }
+        }
+        
+        if (allEmployees.length === 0) {
+            useDefaultEmployees();
+        } else {
+            // حفظ البيانات في localStorage
+            localStorage.setItem('employees_backup', JSON.stringify(allEmployees));
+            document.getElementById('statusBar').innerHTML = `✅ تم تحميل ${allEmployees.length} موظف`;
+            document.getElementById('searchPhase').style.display = 'block';
+        }
+    }
+    
+    function useDefaultEmployees() {
+        // البيانات الافتراضية في حال فشل تحميل CSV
+        allEmployees = [
+            { id: "1098107010228600", name: "أحمد المدير", job: "مدير عام" },
+            { id: "1001", name: "محمد عبدالله", job: "مدير الموارد البشرية" },
+            { id: "1002", name: "سارة أحمد", job: "محاسبة" },
+            { id: "1003", name: "خالد محمد", job: "تطوير الأعمال" },
+            { id: "1004", name: "نورة سعد", job: "خدمة العملاء" },
+            { id: "1005", name: "عمر إبراهيم", job: "تقنية معلومات" }
+        ];
+        
+        document.getElementById('statusBar').innerHTML = `✅ ${allEmployees.length} موظف (افتراضي)`;
+        document.getElementById('searchPhase').style.display = 'block';
+    }
+    
     // تحميل البيانات من localStorage
     function loadData() {
-        const savedEmployees = localStorage.getItem('employees');
-        if (savedEmployees) allEmployees = JSON.parse(savedEmployees);
+        const savedEmployees = localStorage.getItem('employees_backup');
+        if (savedEmployees && allEmployees.length === 0) {
+            allEmployees = JSON.parse(savedEmployees);
+        }
         
         const savedPosts = localStorage.getItem('posts');
         if (savedPosts) posts = JSON.parse(savedPosts);
         
         const savedUnread = localStorage.getItem('unread_counts');
         if (savedUnread) unreadCounts = JSON.parse(savedUnread);
-        
-        document.getElementById('statusBar').innerHTML = `✅ ${allEmployees.length} موظف`;
-    }
-    
-    function saveEmployees() {
-        localStorage.setItem('employees', JSON.stringify(allEmployees));
     }
     
     function savePosts() {
@@ -267,7 +361,7 @@
     
     function checkAutoLogin() {
         const remembered = localStorage.getItem('remembered_user');
-        if (remembered) {
+        if (remembered && allEmployees.length > 0) {
             const data = JSON.parse(remembered);
             const emp = allEmployees.find(e => e.id === data.id);
             if (emp) {
@@ -285,7 +379,6 @@
         renderChatsList();
         renderPosts();
         
-        // تحديث حالة المتصلين
         updateOnlineStatus();
         setInterval(updateOnlineStatus, 30000);
     }
@@ -371,7 +464,6 @@
         activeChat = { id: userId, name: userName };
         const chatId = getChatId(userId);
         
-        // مسح الإشعارات
         if (unreadCounts[chatId]) {
             delete unreadCounts[chatId];
             saveUnread();
@@ -433,47 +525,13 @@
         
         input.value = '';
         renderMessages(chatId);
-        
-        // تحديث قائمة المحادثات
         renderChatsList();
-        
-        // محاكاة رد تلقائي (اختياري)
-        if (activeChat.id !== '1098107010228600') {
-            setTimeout(() => simulateReply(activeChat.id), 2000);
-        }
-    }
-    
-    function simulateReply(userId) {
-        const replies = ['شكراً لك', 'حاضر 👍', 'سأتابع الموضوع', 'تم الاستلام', '✅'];
-        const randomReply = replies[Math.floor(Math.random() * replies.length)];
-        const chatId = getChatId(userId);
-        const msgs = loadMessages(chatId);
-        
-        msgs.push({
-            id: Date.now(),
-            sender: userId,
-            text: randomReply,
-            time: new Date().toISOString()
-        });
-        
-        messages[chatId] = msgs;
-        saveMessages(chatId);
-        
-        if (activeChat && activeChat.id === userId) {
-            renderMessages(chatId);
-        } else {
-            unreadCounts[chatId] = (unreadCounts[chatId] || 0) + 1;
-            saveUnread();
-            renderChatsList();
-            showNotification(`رسالة جديدة من ${allEmployees.find(e => e.id === userId)?.name}`, '💬');
-        }
     }
     
     function renderChatsList() {
         const container = document.getElementById('chatsList');
         const chats = new Set();
         
-        // جمع جميع المحادثات من الرسائل
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key && key.startsWith('messages_')) {
@@ -608,7 +666,7 @@
     function shareToChat(postId) {
         const post = posts.find(p => p.id === postId);
         if (post) {
-            showNotification('تمت المشاركة في المجموعة العامة', '📢');
+            showNotification('تمت المشاركة', '📢');
         }
     }
     
@@ -693,10 +751,16 @@
         };
     });
     
-    // بدء التطبيق
-    loadData();
-    checkAutoLogin();
+    // بدء التحميل
+    async function init() {
+        loadData();
+        await loadEmployeesFromCSV();
+        checkAutoLogin();
+    }
     
+    init();
+    
+    // تعريف الدوال globally
     window.searchEmployees = searchEmployees;
     window.selectEmployee = selectEmployee;
     window.openChat = openChat;
