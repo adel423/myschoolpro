@@ -26,10 +26,7 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: var(--sky-bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        .login-screen {
-            background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm);
-            max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto;
-        }
+        .login-screen { background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm); max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto; }
         .login-screen h1 { font-size: 28px; margin-bottom: 5px; }
         .login-screen p { margin-bottom: 8px; }
         .input-field { width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--border-light); background: #f0f2f5; outline: none; margin: 6px 0; font-size: 14px; }
@@ -86,19 +83,19 @@
         .settings-modal .option-btn:hover { background: #f5f5f5; }
         .file-link { color: var(--primary); text-decoration: none; word-break: break-all; display: flex; align-items: center; gap: 5px; }
         .file-link i { margin-left: 5px; }
-        /* منشورات */
         .post-card { background: white; border-radius: 12px; padding: 12px; margin: 10px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .post-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .post-body { margin-bottom: 10px; }
-        .post-image { max-width: 100%; border-radius: 8px; margin-top: 8px; }
-        .post-actions { display: flex; gap: 20px; font-size: 14px; color: var(--text-muted); }
-        .post-actions i { cursor: pointer; transition: 0.2s; }
+        .post-body { margin-bottom: 10px; white-space: pre-wrap; }
+        .post-image { max-width: 100%; border-radius: 8px; margin-top: 8px; cursor: pointer; }
+        .post-actions { display: flex; gap: 20px; font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+        .post-actions span { cursor: pointer; display: flex; align-items: center; gap: 4px; }
         .post-actions i.liked { color: var(--like-color); }
-        .post-time { font-size: 11px; color: gray; margin-left: auto; }
-        .create-post-area { background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
-        .create-post-area textarea { width: 100%; border: 1px solid #ddd; border-radius: 12px; padding: 10px; resize: vertical; }
-        .create-post-area button { background: var(--primary); color: white; border: none; border-radius: 20px; padding: 8px 20px; cursor: pointer; }
+        .post-time { font-size: 11px; color: gray; margin-right: auto; }
+        .create-post-area { background: white; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        .create-post-area textarea { width: 100%; border: 1px solid #ddd; border-radius: 12px; padding: 10px; resize: vertical; font-size: 14px; }
+        .create-post-area .post-toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .create-post-area .post-toolbar button { background: var(--primary); color: white; border: none; border-radius: 20px; padding: 8px 20px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -149,8 +146,8 @@
         <div id="postsScreen" style="display:none; flex:1; overflow-y:auto; padding:12px;">
             <div class="create-post-area">
                 <textarea id="newPostText" placeholder="ما الذي يدور في ذهنك؟" rows="2"></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                    <label for="postImageInput" style="cursor:pointer;"><i class="fas fa-image" style="color:var(--primary);"></i> صورة</label>
+                <div class="post-toolbar">
+                    <label for="postImageInput" style="cursor:pointer; color:var(--primary);"><i class="fas fa-image"></i> صورة</label>
                     <input type="file" id="postImageInput" accept="image/*" onchange="previewPostImage(event)" style="display:none;">
                     <button onclick="createPost()">نشر</button>
                 </div>
@@ -164,9 +161,9 @@
             <div class="nav-item" data-section="calls"><i class="fas fa-phone-alt"></i><div>المكالمات</div></div>
         </div>
     </div>
-    <div id="callsScreen" style="display:none; height:100%; overflow-y:auto;">
-        <div style="display:flex; align-items:center; gap:15px; padding:15px;"><i class="fas fa-arrow-right" id="closeCallsBtn" style="cursor:pointer;"></i> <h3>سجل المكالمات</h3></div>
-        <div id="callsList" style="padding:10px;"></div>
+    <div id="callsScreen" style="display:none; height:100%; overflow-y:auto; padding:10px;">
+        <div style="display:flex; align-items:center; gap:15px; padding:10px; margin-bottom:10px;"><i class="fas fa-arrow-right" id="closeCallsBtn" style="cursor:pointer;"></i> <h3>سجل المكالمات</h3></div>
+        <div id="callsList"></div>
     </div>
     <div id="chatScreen" class="chat-screen">
         <div class="chat-header">
@@ -188,11 +185,11 @@
 </div>
 
 <div id="callOverlay" class="call-overlay">
-    <div id="callPartnerName" style="font-size:24px;"></div>
+    <div id="callPartnerName" style="font-size:24px; margin-bottom:10px;"></div>
     <div id="callStatus" style="margin:10px 0;">جاري الاتصال...</div>
-    <video id="remoteVideo" style="width:300px; background:#000; border-radius:20px;" autoplay playsinline></video>
-    <video id="localVideo" style="position:absolute; bottom:50px; right:50px; width:100px; border-radius:10px; border:2px solid white;" autoplay playsinline muted></video>
-    <div style="margin-top:30px; display:flex; gap:20px;">
+    <video id="remoteVideo" style="width:90%; max-width:350px; background:#000; border-radius:20px; margin:10px 0;" autoplay playsinline></video>
+    <video id="localVideo" style="position:absolute; bottom:70px; right:20px; width:100px; border-radius:10px; border:2px solid white; background:#222;" autoplay playsinline muted></video>
+    <div style="margin-top:20px; display:flex; gap:20px;">
         <button id="micBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:55px; height:55px; color:white; font-size:20px;"><i class="fas fa-microphone"></i></button>
         <button id="hangupBtn" style="background:#f44336; border:none; border-radius:50%; width:65px; height:65px; color:white; font-size:24px;"><i class="fas fa-phone-slash"></i></button>
         <button id="camBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:55px; height:55px; color:white; font-size:20px;"><i class="fas fa-video"></i></button>
@@ -231,12 +228,12 @@ let isCallActive = false, currentCallType = null, targetUser = null;
 let pendingOffer = null, pendingFrom = null, pendingType = null, callStartTime = null;
 let postImageFile = null;
 
-// ======================= تذكرني =======================
+// ---------- تذكرني ----------
 function getRememberedUser() { const d = localStorage.getItem('remembered_user'); return d ? JSON.parse(d) : null; }
 function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
 function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
 
-// ======================= صوت =======================
+// ---------- صوت ----------
 function playTone(type) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -256,7 +253,7 @@ function playTone(type) {
     } catch(e) {}
 }
 
-// ======================= مساعدة =======================
+// ---------- مساعدة ----------
 function showNotif(msg, icon='🔔') { const n=document.getElementById('notification'); n.innerHTML=icon+' '+msg; n.style.display='block'; setTimeout(()=>n.style.display='none',3000); }
 function scrollToBottom() { const c=document.getElementById('messagesContainer'); if(c) c.scrollTo({top:c.scrollHeight,behavior:'smooth'}); }
 function formatTime(d) { const date = new Date(d); return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`; }
@@ -277,7 +274,7 @@ function incrementUnread(chatId, senderId) {
 }
 function markChatAsRead(chatId) { if(unreadCounts[chatId]) { delete unreadCounts[chatId]; localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); renderChatsList(); } }
 
-// ======================= الصور =======================
+// ---------- الصور ----------
 function getAvatarUrl(empId) {
     if (empId === 'group') return 'https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100';
     const saved = localStorage.getItem(`avatar_${empId}`);
@@ -305,7 +302,7 @@ window.changeAvatar = function(event) {
     reader.readAsDataURL(file);
 };
 
-// ======================= تحميل الموظفين =======================
+// ---------- تحميل الموظفين ----------
 async function loadEmployees() {
     try {
         let res = await fetch('./employees.csv');
@@ -326,7 +323,7 @@ async function loadEmployees() {
     } catch(e) { document.getElementById('statusBar').innerText='❌ فشل تحميل البيانات'; }
 }
 
-// ======================= تسجيل الدخول =======================
+// ---------- تسجيل الدخول ----------
 let selectedLoginEmp = null;
 window.searchEmployees = function() {
     const q = document.getElementById('loginSearch').value.trim();
@@ -364,13 +361,10 @@ document.getElementById('backToSearch2').onclick = ()=>{ document.getElementById
 
 function checkAutoLogin() {
     const remembered = getRememberedUser();
-    if (remembered) {
-        const emp = allEmployees.find(e=>e.id===remembered.userId);
-        if (emp) { currentUser = emp; startApp(); }
-    }
+    if (remembered) { const emp = allEmployees.find(e=>e.id===remembered.userId); if (emp) { currentUser = emp; startApp(); } }
 }
 
-// ======================= بدء التطبيق =======================
+// ---------- بدء التطبيق ----------
 async function startApp() {
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='flex';
@@ -381,17 +375,12 @@ async function startApp() {
     document.querySelector('.nav-item[data-section="chats"]').click();
 }
 
-// ======================= الدوال المفقودة =======================
 function renderStories() {
     if (!currentUser) return;
     const c = document.getElementById('storiesContainer');
-    let html = `<div class="online-user" onclick="promptChangeAvatar()" title="انقر لتغيير الصورة">
-        <img src="${getAvatarUrl(currentUser.id)}" class="story-avatar">
-        <div class="active-dot" style="background:var(--primary);"></div>
-        <span style="font-size:11px;">حسابي</span>
-    </div>`;
+    let html = `<div class="online-user" onclick="promptChangeAvatar()"><img src="${getAvatarUrl(currentUser.id)}" class="story-avatar"><div class="active-dot" style="background:var(--primary);"></div><span style="font-size:11px;">حسابي</span></div>`;
     const online = allEmployees.filter(e => e.id !== currentUser.id && onlineUsers.has(e.id));
-    html += online.length ? online.map(e => `<div class="online-user" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatarUrl(e.id)}" class="story-avatar"><div class="active-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`).join('') : '<div style="padding:10px;color:gray;font-size:13px;">لا متصلين حالياً</div>';
+    html += online.length ? online.map(e => `<div class="online-user" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatarUrl(e.id)}" class="story-avatar"><div class="active-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`).join('') : '<div style="padding:10px;color:gray;">لا متصلين حالياً</div>';
     c.innerHTML = html;
 }
 
@@ -401,40 +390,26 @@ async function renderChatsList() {
     const activeList = getActiveChats();
     const groupUnread = unreadCounts['group'] || 0;
     let lastGroupMsg = '';
-    try {
-        const { data } = await supabaseClient.from('messages').select('text').eq('chat_id','group').order('created_at',{ascending:false}).limit(1);
-        if (data?.length) lastGroupMsg = data[0].text.replace(/<[^>]*>/g,'').substring(0,40);
-    } catch(e) {}
-    let html = `<div class="chat-row" onclick="openChat('group','المجموعة العامة')">
-        <div style="position:relative"><img src="${getAvatarUrl('group')}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">${groupUnread>0?`<div class="unread-badge">${groupUnread}</div>`:''}</div>
-        <div class="chat-info"><h5>المجموعة العامة 📢</h5><p>${lastGroupMsg?escapeHtml(lastGroupMsg):'تواصل مع جميع الموظفين'}</p></div>
-    </div>`;
+    try { const { data } = await supabaseClient.from('messages').select('text').eq('chat_id','group').order('created_at',{ascending:false}).limit(1); if (data?.length) lastGroupMsg = data[0].text.replace(/<[^>]*>/g,'').substring(0,40); } catch(e) {}
+    let html = `<div class="chat-row" onclick="openChat('group','المجموعة العامة')"><div style="position:relative"><img src="${getAvatarUrl('group')}" style="width:50px;height:50px;border-radius:50%;">${groupUnread>0?`<div class="unread-badge">${groupUnread}</div>`:''}</div><div class="chat-info"><h5>المجموعة العامة 📢</h5><p>${lastGroupMsg?escapeHtml(lastGroupMsg):'تواصل مع جميع الموظفين'}</p></div></div>`;
     for (const chatId of activeList) {
         if (chatId === 'group') continue;
         const ids = chatId.split('_'); const other = ids.find(id => id !== currentUser.id); if (!other) continue;
         const emp = allEmployees.find(e => e.id === other); if (!emp) continue;
         const count = unreadCounts[chatId] || 0;
         let lastMsg = '', lastTime = '';
-        try {
-            const { data: last } = await supabaseClient.from('messages').select('text,created_at').eq('chat_id', chatId).order('created_at', { ascending: false }).limit(1);
-            if (last?.length) { lastMsg = last[0].text.replace(/<[^>]*>/g, '').substring(0, 40); lastTime = formatTimeAgo(last[0].created_at); }
-        } catch (e) {}
-        html += `<div class="chat-row" onclick="openChat('${emp.id}','${emp.name}')">
-            <div style="position:relative"><img src="${getAvatarUrl(emp.id)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">${count > 0 ? `<div class="unread-badge">${count}</div>` : ''}</div>
-            <div class="chat-info"><h5>${escapeHtml(emp.name)}</h5><p>${lastMsg ? escapeHtml(lastMsg) : 'ابدأ المحادثة'}</p></div>
-            <div style="font-size:10px;color:gray;">${lastTime}</div>
-        </div>`;
+        try { const { data: last } = await supabaseClient.from('messages').select('text,created_at').eq('chat_id', chatId).order('created_at', { ascending: false }).limit(1); if (last?.length) { lastMsg = last[0].text.replace(/<[^>]*>/g, '').substring(0, 40); lastTime = formatTimeAgo(last[0].created_at); } } catch (e) {}
+        html += `<div class="chat-row" onclick="openChat('${emp.id}','${emp.name}')"><div style="position:relative"><img src="${getAvatarUrl(emp.id)}" style="width:50px;height:50px;border-radius:50%;">${count > 0 ? `<div class="unread-badge">${count}</div>` : ''}</div><div class="chat-info"><h5>${escapeHtml(emp.name)}</h5><p>${lastMsg ? escapeHtml(lastMsg) : 'ابدأ المحادثة'}</p></div><div style="font-size:10px;color:gray;">${lastTime}</div></div>`;
     }
     container.innerHTML = html || '<div style="text-align:center;padding:40px;color:gray;">لا توجد محادثات بعد</div>';
 }
 
-// ======================= القنوات =======================
+// ---------- القنوات ----------
 async function initChannels() {
     if (messagesChannel) supabaseClient.removeChannel(messagesChannel);
     messagesChannel = supabaseClient.channel('messages-channel')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
-        const msg = payload.new;
-        if (!msg) return;
+        const msg = payload.new; if (!msg) return;
         if (msg.chat_id === 'group') {
             await renderChatsList();
             if (activeChat?.id === 'group') { await fetchMessages('group'); scrollToBottom(); }
@@ -452,9 +427,7 @@ async function initChannels() {
             document.getElementById('typingIndicator').style.display = 'block';
             document.getElementById('typingIndicator').innerText = payload.name + ' يكتب...';
         }
-    }).on('broadcast', { event: 'typing_stop' }, () => {
-        document.getElementById('typingIndicator').style.display = 'none';
-    }).subscribe();
+    }).on('broadcast', { event: 'typing_stop' }, () => { document.getElementById('typingIndicator').style.display = 'none'; }).subscribe();
 }
 
 function initPresence() {
@@ -465,9 +438,7 @@ function initPresence() {
         const state = presenceChannel.presenceState();
         for (const key in state) if (key !== currentUser.id) onlineUsers.add(key);
         renderStories();
-    }).subscribe(async status => {
-        if (status === 'SUBSCRIBED') await presenceChannel.track({ user_id: currentUser.id, name: currentUser.name });
-    });
+    }).subscribe(async status => { if (status === 'SUBSCRIBED') await presenceChannel.track({ user_id: currentUser.id, name: currentUser.name }); });
 }
 
 function initSignaling() {
@@ -489,7 +460,7 @@ function initSignaling() {
     }).subscribe();
 }
 
-// ======================= منشورات =======================
+// ---------- منشورات ----------
 async function initPostsRealtime() {
     try {
         if (postsChannel) supabaseClient.removeChannel(postsChannel);
@@ -507,55 +478,38 @@ async function initPostsRealtime() {
 }
 
 async function updateLikeCount(postId) {
-    try {
-        const { count } = await supabaseClient.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', postId);
-        const span = document.querySelector(`.like-count[data-post-id="${postId}"]`);
-        if (span) span.innerText = count || 0;
-    } catch(e) {}
+    try { const { count } = await supabaseClient.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', postId); const span = document.querySelector(`.like-count[data-post-id="${postId}"]`); if (span) span.innerText = count || 0; } catch(e) {}
 }
 
 async function renderPosts() {
     if (!currentUser) return;
     try {
         const { data: posts } = await supabaseClient.from('posts').select('*').order('created_at', { ascending: false }).limit(30);
-        if (!posts || posts.length === 0) {
-            document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;color:gray;">لا توجد منشورات بعد. كن أول من يكتب منشوراً!</div>';
-            return;
-        }
+        if (!posts || posts.length === 0) { document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;color:gray;">لا توجد منشورات بعد.</div>'; return; }
         let likesData = { data: [] };
         try { likesData = await supabaseClient.from('post_likes').select('post_id, user_id'); } catch(e) {}
         const userLikes = new Set((likesData.data||[]).filter(l=>l.user_id===currentUser.id).map(l=>l.post_id));
         let html = '';
         for (const post of posts) {
             const user = allEmployees.find(e => e.id === post.user_id) || { name: 'مستخدم', id: post.user_id };
-            const avatar = getAvatarUrl(post.user_id);
             const likeCount = (likesData.data || []).filter(l => l.post_id === post.id).length;
             const isLiked = userLikes.has(post.id);
-            html += `
-            <div class="post-card">
+            html += `<div class="post-card">
                 <div class="post-header">
-                    <img src="${avatar}" class="post-avatar" onclick="openChat('${post.user_id}','${user.name}')">
-                    <div>
-                        <strong>${escapeHtml(user.name)}</strong>
-                        <div class="post-time">${formatTimeAgo(post.created_at)}</div>
-                    </div>
+                    <img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')">
+                    <div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div>
                 </div>
-                <div class="post-body">${escapeHtml(post.text || '')}</div>
+                <div class="post-body">${escapeHtml(post.text||'')}</div>
                 ${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}
                 <div class="post-actions">
-                    <span onclick="toggleLike('${post.id}')" style="cursor:pointer;">
-                        <i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i>
-                        <span class="like-count" data-post-id="${post.id}">${likeCount}</span>
-                    </span>
+                    <span onclick="toggleLike('${post.id}')"><i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i> <span class="like-count" data-post-id="${post.id}">${likeCount}</span></span>
                     <span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>
                     ${(post.user_id===currentUser.id || isDirector()) ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}
                 </div>
             </div>`;
         }
         document.getElementById('postsList').innerHTML = html;
-    } catch (e) {
-        document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;color:red;">تعذر تحميل المنشورات. تأكد من إنشاء الجداول في Supabase.</div>';
-    }
+    } catch (e) { document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;color:red;">تعذر تحميل المنشورات. تأكد من إنشاء الجداول في Supabase.</div>'; }
 }
 
 async function createPost() {
@@ -569,10 +523,7 @@ async function createPost() {
         imageUrl = supabaseClient.storage.from('post-images').getPublicUrl(path).data.publicUrl;
     }
     const { error } = await supabaseClient.from('posts').insert({
-        user_id: currentUser.id,
-        text: text || '(صورة)',
-        image_url: imageUrl,
-        created_at: new Date().toISOString()
+        user_id: currentUser.id, text: text || '(صورة)', image_url: imageUrl, created_at: new Date().toISOString()
     });
     if (error) { showNotif('فشل النشر: '+error.message); }
     else {
@@ -588,24 +539,18 @@ function previewPostImage(event) {
     if (file) {
         postImageFile = file;
         const reader = new FileReader();
-        reader.onload = e => {
-            document.getElementById('postPreview').src = e.target.result;
-            document.getElementById('postPreview').style.display = 'block';
-        };
+        reader.onload = e => { document.getElementById('postPreview').src = e.target.result; document.getElementById('postPreview').style.display = 'block'; };
         reader.readAsDataURL(file);
     }
 }
 
 async function toggleLike(postId) {
-    const heart = document.getElementById(`heart-${postId}`);
-    if (!heart) return;
-    const isLiked = heart.classList.contains('liked');
     try {
-        if (isLiked) {
-            await supabaseClient.from('post_likes').delete().match({ post_id: postId, user_id: currentUser.id });
-        } else {
-            await supabaseClient.from('post_likes').insert({ post_id: postId, user_id: currentUser.id });
-        }
+        const heart = document.getElementById(`heart-${postId}`);
+        if (!heart) return;
+        const isLiked = heart.classList.contains('liked');
+        if (isLiked) await supabaseClient.from('post_likes').delete().match({ post_id: postId, user_id: currentUser.id });
+        else await supabaseClient.from('post_likes').insert({ post_id: postId, user_id: currentUser.id });
     } catch(e) { showNotif('فشل التفاعل'); }
 }
 
@@ -613,12 +558,7 @@ async function sharePost(postId) {
     const { data } = await supabaseClient.from('posts').select('text,image_url').eq('id', postId).single();
     if (data) {
         const shareText = `📢 منشور من الزملاء:\n${data.text}` + (data.image_url ? `\n📷 ${data.image_url}` : '');
-        await supabaseClient.from('messages').insert({
-            chat_id: 'group',
-            sender: currentUser.id,
-            text: shareText,
-            created_at: new Date().toISOString()
-        });
+        await supabaseClient.from('messages').insert({ chat_id: 'group', sender: currentUser.id, text: shareText, created_at: new Date().toISOString() });
         showNotif('تمت مشاركة المنشور في المجموعة');
     }
 }
@@ -629,7 +569,7 @@ async function deletePost(postId) {
     renderPosts();
 }
 
-// ======================= الدردشة (كاملة) =======================
+// ---------- الدردشة ----------
 window.openChat = async (id, name) => {
     activeChat = { id, name };
     currentChatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
@@ -659,10 +599,7 @@ async function fetchMessages(chatId) {
         const isMine = m.sender === currentUser.id;
         const timeStr = formatTime(m.created_at);
         let senderName = '';
-        if (activeChat?.id==='group' && !isMine) {
-            const s = allEmployees.find(e=>e.id===m.sender);
-            if (s) senderName = `<div style="font-size:11px;color:var(--primary);">${s.name}</div>`;
-        }
+        if (activeChat?.id==='group' && !isMine) { const s = allEmployees.find(e=>e.id===m.sender); if (s) senderName = `<div style="font-size:11px;color:var(--primary);">${s.name}</div>`; }
         const canDelete = isMine || isDirector();
         const deleteBtn = canDelete ? `<button class="delete-msg-btn" onclick="deleteMessage('${m.id}')"><i class="fas fa-trash-alt"></i></button>` : '';
         let content = '';
@@ -671,25 +608,13 @@ async function fetchMessages(chatId) {
             const fileIcon = getFileIcon(fileName);
             content = `<a href="${m.file_url}" target="_blank" class="file-link" style="color: ${isMine ? 'white' : 'var(--primary)'};">${fileIcon} ${fileName}</a>`;
             if (m.text) content += `<div style="margin-top:4px;">${m.text}</div>`;
-        } else {
-            content = `<div>${m.text}</div>`;
-        }
-        return `<div class="message ${isMine?'sent':'received'}" data-msg-id="${m.id}">
-            ${senderName}
-            <div class="bubble">${content}</div>
-            <div class="msg-time"><span>${timeStr}</span>${deleteBtn}</div>
-        </div>`;
+        } else content = `<div>${m.text}</div>`;
+        return `<div class="message ${isMine?'sent':'received'}" data-msg-id="${m.id}">${senderName}<div class="bubble">${content}</div><div class="msg-time"><span>${timeStr}</span>${deleteBtn}</div></div>`;
     }).join('');
     scrollToBottom();
 }
-function getFileIcon(fileName) {
-    const ext = fileName.split('.').pop().toLowerCase();
-    if (['jpg','jpeg','png','gif','bmp'].includes(ext)) return '<i class="fas fa-file-image"></i>';
-    if (ext === 'pdf') return '<i class="fas fa-file-pdf"></i>';
-    if (['doc','docx'].includes(ext)) return '<i class="fas fa-file-word"></i>';
-    if (['xls','xlsx'].includes(ext)) return '<i class="fas fa-file-excel"></i>';
-    return '<i class="fas fa-file"></i>';
-}
+function getFileIcon(name) { const ext=name.split('.').pop().toLowerCase(); if (['jpg','jpeg','png','gif','bmp'].includes(ext)) return '<i class="fas fa-file-image"></i>'; if (ext==='pdf') return '<i class="fas fa-file-pdf"></i>'; if (['doc','docx'].includes(ext)) return '<i class="fas fa-file-word"></i>'; if (['xls','xlsx'].includes(ext)) return '<i class="fas fa-file-excel"></i>'; return '<i class="fas fa-file"></i>'; }
+
 async function sendMessage() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
@@ -709,26 +634,19 @@ document.getElementById('msgInput').onkeydown = (e) => {
     }
 };
 async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file || !currentChatId) return;
-    if (file.size > 20 * 1024 * 1024) return showNotif('حجم الملف كبير جداً', '❌');
+    const file = event.target.files[0]; if (!file || !currentChatId) return;
+    if (file.size > 20*1024*1024) return showNotif('حجم الملف كبير جداً', '❌');
     showNotif('جاري رفع الملف...', '⏳');
-    const filePath = `${currentChatId}/${Date.now()}_${file.name}`;
-    const { error } = await supabaseClient.storage.from('chat-files').upload(filePath, file, {cacheControl:'3600',upsert:true});
+    const path = `${currentChatId}/${Date.now()}_${file.name}`;
+    const { error } = await supabaseClient.storage.from('chat-files').upload(path, file, {cacheControl:'3600',upsert:true});
     if (error) { showNotif('فشل الرفع: '+error.message); return; }
-    const { data: urlData } = supabaseClient.storage.from('chat-files').getPublicUrl(filePath);
+    const url = supabaseClient.storage.from('chat-files').getPublicUrl(path).data.publicUrl;
     const msgText = document.getElementById('msgInput').value.trim();
-    await supabaseClient.from('messages').insert({
-        chat_id: currentChatId, sender: currentUser.id, text: msgText || '(ملف)', file_url: urlData.publicUrl, file_name: file.name, created_at: new Date().toISOString()
-    });
-    document.getElementById('msgInput').value = '';
-    document.getElementById('fileInput').value = '';
+    await supabaseClient.from('messages').insert({ chat_id: currentChatId, sender: currentUser.id, text: msgText || '(ملف)', file_url: url, file_name: file.name, created_at: new Date().toISOString() });
+    document.getElementById('msgInput').value = ''; document.getElementById('fileInput').value = '';
     await fetchMessages(currentChatId);
 }
-async function deleteMessage(msgId) {
-    if (!confirm('حذف الرسالة؟')) return;
-    await supabaseClient.from('messages').delete().eq('id', msgId);
-}
+async function deleteMessage(msgId) { if (confirm('حذف الرسالة؟')) await supabaseClient.from('messages').delete().eq('id', msgId); }
 async function deleteAllMessages() {
     if (!isDirector() || !currentChatId) return;
     if (!confirm('حذف جميع رسائل المحادثة؟')) return;
@@ -738,14 +656,12 @@ async function deleteAllMessages() {
 }
 document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
 
-// ======================= المكالمات (محسّنة) =======================
+// ---------- المكالمات ----------
 window.startCall = async function(type) {
     if(!activeChat || activeChat.id==='group') return showNotif('اختر محادثة خاصة','⚠️');
     targetUser = allEmployees.find(e=>e.id===activeChat.id);
     if(!targetUser) return;
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        return showNotif('الكاميرا تحتاج HTTPS. استخدم localhost أو شهادة SSL.','🔒');
-    }
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') return showNotif('الكاميرا تحتاج HTTPS','🔒');
     currentCallType = type; isCallActive = true; callStartTime = null;
     await setupCall(false);
 };
@@ -756,20 +672,15 @@ async function setupCall(isAnswer) {
             { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
             { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
         ];
-        const constraints = { audio: true, video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false };
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: currentCallType==='video' ? { width:{ideal:640}, height:{ideal:480} } : false });
         document.getElementById('localVideo').srcObject = localStream;
         document.getElementById('callOverlay').style.display = 'flex';
         document.getElementById('callPartnerName').innerText = targetUser.name;
         if(peerConnection) peerConnection.close();
         peerConnection = new RTCPeerConnection({ iceServers });
         localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-        peerConnection.ontrack = e => {
-            if(e.streams[0]) { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('callStatus').innerHTML='✅ متصل'; }
-        };
-        peerConnection.onicecandidate = e => {
-            if(e.candidate) signalingChannel.send({ type:'broadcast', event:'ice', payload:{ candidate:e.candidate, target:targetUser.id } });
-        };
+        peerConnection.ontrack = e => { if(e.streams[0]) { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('callStatus').innerHTML='✅ متصل'; } };
+        peerConnection.onicecandidate = e => { if(e.candidate) signalingChannel.send({ type:'broadcast', event:'ice', payload:{ candidate:e.candidate, target:targetUser.id } }); };
         if(isAnswer) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer));
             const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer);
@@ -780,11 +691,7 @@ async function setupCall(isAnswer) {
             signalingChannel.send({ type:'broadcast', event:'offer', payload:{ sdp:peerConnection.localDescription, from:currentUser.id, target:targetUser.id, type:currentCallType } });
             playTone('call'); callStartTime = Date.now();
         }
-    } catch(err) {
-        console.error(err);
-        showNotif('فشل الوصول للكاميرا/الميكروفون. تأكد من السماح بالوصول في المتصفح.','❌');
-        hangUp(true);
-    }
+    } catch(err) { showNotif('فشل الوصول للكاميرا/الميكروفون','❌'); hangUp(true); }
 }
 window.hangUp = function(sendSignal=true) {
     if(peerConnection) peerConnection.close();
@@ -796,17 +703,13 @@ window.hangUp = function(sendSignal=true) {
     isCallActive = false; targetUser = null; pendingOffer = null; pendingFrom = null; pendingType = null; callStartTime = null;
 };
 document.getElementById('hangupBtn').onclick = ()=> hangUp(true);
-document.getElementById('micBtn').onclick = ()=>{
-    if(localStream){ const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; document.getElementById('micBtn').innerHTML=t.enabled?'<i class="fas fa-microphone"></i>':'<i class="fas fa-microphone-slash"></i>'; } }
-};
-document.getElementById('camBtn').onclick = ()=>{
-    if(localStream){ const t=localStream.getVideoTracks()[0]; if(t){ t.enabled=!t.enabled; document.getElementById('camBtn').innerHTML=t.enabled?'<i class="fas fa-video"></i>':'<i class="fas fa-video-slash"></i>'; } }
-};
+document.getElementById('micBtn').onclick = ()=>{ if(localStream){ const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; document.getElementById('micBtn').innerHTML=t.enabled?'<i class="fas fa-microphone"></i>':'<i class="fas fa-microphone-slash"></i>'; } } };
+document.getElementById('camBtn').onclick = ()=>{ if(localStream){ const t=localStream.getVideoTracks()[0]; if(t){ t.enabled=!t.enabled; document.getElementById('camBtn').innerHTML=t.enabled?'<i class="fas fa-video"></i>':'<i class="fas fa-video-slash"></i>'; } } };
 function showIncomingCall(name, type, fromId) {
     const div = document.getElementById('incomingCall');
-    div.innerHTML = `<div style="padding:20px;"><h3><i class="fas fa-phone-alt"></i> مكالمة واردة</h3><p>${name} يطلب ${type==='video'?'فيديو':'صوتية'}</p>
-    <button id="acceptCallBtn" style="background:#10b981;color:white;border:none;border-radius:20px;padding:10px 20px;margin:5px;">قبول</button>
-    <button id="rejectCallBtn" style="background:#f44336;color:white;border:none;border-radius:20px;padding:10px 20px;">رفض</button></div>`;
+    div.innerHTML = `<div style="padding:20px;"><h3>مكالمة واردة</h3><p>${name} - ${type==='video'?'فيديو':'صوت'}</p>
+        <button id="acceptCallBtn" style="background:#10b981; color:white; border:none; border-radius:20px; padding:10px 20px; margin:5px;">قبول</button>
+        <button id="rejectCallBtn" style="background:#f44336; color:white; border:none; border-radius:20px; padding:10px 20px;">رفض</button></div>`;
     div.style.display = 'block';
     document.getElementById('acceptCallBtn').onclick = async ()=>{ div.style.display='none'; targetUser = allEmployees.find(e=>e.id===fromId); currentCallType=type; isCallActive=true; await setupCall(true); };
     document.getElementById('rejectCallBtn').onclick = ()=>{ div.style.display='none'; addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); };
@@ -815,14 +718,14 @@ function showIncomingCall(name, type, fromId) {
 document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
 document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
 
-// ======================= سجل المكالمات =======================
-function addCallLog(callerId, calleeId, type, answered, dur) {
-    const entry = { id: Date.now()+'_'+Math.random().toString(36).substr(2,6), caller_id:callerId, callee_id:calleeId, call_type:type, answered, missed:!answered, duration_seconds:dur||0, timestamp:new Date().toISOString() };
-    const logs1 = JSON.parse(localStorage.getItem(`call_logs_${callerId}`)||'[]'); logs1.unshift(entry); localStorage.setItem(`call_logs_${callerId}`, JSON.stringify(logs1));
-    if(callerId!==calleeId) { const logs2 = JSON.parse(localStorage.getItem(`call_logs_${calleeId}`)||'[]'); logs2.unshift(entry); localStorage.setItem(`call_logs_${calleeId}`, JSON.stringify(logs2)); }
+// سجل المكالمات
+function addCallLog(caller, callee, type, answered, dur) {
+    const entry = { id: Date.now()+'_'+Math.random().toString(36).substr(2,6), caller_id:caller, callee_id:callee, call_type:type, answered, missed:!answered, duration_seconds:dur||0, timestamp: new Date().toISOString() };
+    const l1 = JSON.parse(localStorage.getItem(`call_logs_${caller}`)||'[]'); l1.unshift(entry); localStorage.setItem(`call_logs_${caller}`, JSON.stringify(l1));
+    if(caller!==callee) { const l2 = JSON.parse(localStorage.getItem(`call_logs_${callee}`)||'[]'); l2.unshift(entry); localStorage.setItem(`call_logs_${callee}`, JSON.stringify(l2)); }
     if(document.getElementById('callsScreen').style.display==='block') renderCallsLog();
 }
-function formatDuration(sec) { const m=Math.floor(sec/60), s=sec%60; return m?`${m}د ${s}ث`:`${s}ث`; }
+function formatDuration(s) { const m=Math.floor(s/60), sec=s%60; return m?`${m}د ${sec}ث`:`${sec}ث`; }
 function renderCallsLog() {
     if(!currentUser) return;
     const logs = JSON.parse(localStorage.getItem(`call_logs_${currentUser.id}`)||'[]');
@@ -831,39 +734,35 @@ function renderCallsLog() {
     c.innerHTML = logs.map(log=>{
         const pid = log.caller_id===currentUser.id ? log.callee_id : log.caller_id;
         const partner = allEmployees.find(e=>e.id===pid); if(!partner) return '';
-        const ic = log.call_type==='video'?'<i class="fas fa-video"></i>':'<i class="fas fa-phone-alt"></i>';
-        return `<div style="display:flex;align-items:center;padding:12px;background:white;border-radius:16px;margin-bottom:8px;" onclick="window.openChat('${partner.id}','${partner.name}')">
-            <div style="width:45px;text-align:center;font-size:18px;${log.missed?'color:#f44336;':''}">${ic}</div>
+        const icon = log.call_type==='video'?'<i class="fas fa-video"></i>':'<i class="fas fa-phone-alt"></i>';
+        return `<div style="display:flex;align-items:center;padding:12px;background:white;border-radius:16px;margin-bottom:8px;" onclick="openChat('${partner.id}','${partner.name}')">
+            <div style="width:45px;text-align:center;font-size:18px;${log.missed?'color:#f44336;':''}">${icon}</div>
             <div style="flex:1;margin-right:10px;"><div>${partner.name}</div><div style="font-size:12px;color:gray;">${log.missed?'فائتة • ':''}${log.duration_seconds?formatDuration(log.duration_seconds)+' • ':''}${formatTimeAgo(log.timestamp)}</div></div>
-            <button onclick="event.stopPropagation();window.startCallWithUser('${partner.id}','${log.call_type}')" style="background:none;border:1px solid var(--primary);border-radius:20px;padding:5px 12px;color:var(--primary);">معاودة</button>
+            <button onclick="event.stopPropagation();startCallWithUser('${partner.id}','${log.call_type}')" style="border:1px solid var(--primary);border-radius:20px;padding:5px 12px;color:var(--primary);">معاودة</button>
         </div>`;
     }).join('');
 }
-window.startCallWithUser = function(userId, type) {
-    const p = allEmployees.find(e=>e.id===userId);
-    if(p) openChat(userId, p.name);
-    setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500);
-};
+window.startCallWithUser = (userId, type) => { const p = allEmployees.find(e=>e.id===userId); if(p) openChat(userId, p.name); setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500); };
 
-// ======================= التنقل =======================
-document.querySelectorAll('.nav-item').forEach(item=>{
+// ---------- التنقل ----------
+document.querySelectorAll('.nav-item').forEach(item => {
     item.onclick = function() {
-        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         this.classList.add('active');
-        const section = this.dataset.section;
-        document.getElementById('mainView').style.display = (section==='chats'||section==='posts')?'flex':'none';
-        document.getElementById('chatsList').style.display = section==='chats'?'block':'none';
-        document.getElementById('postsScreen').style.display = section==='posts'?'block':'none';
-        document.getElementById('callsScreen').style.display = section==='calls'?'block':'none';
+        const sec = this.dataset.section;
+        document.getElementById('mainView').style.display = (sec==='chats'||sec==='posts')?'flex':'none';
+        document.getElementById('chatsList').style.display = sec==='chats'?'block':'none';
+        document.getElementById('postsScreen').style.display = sec==='posts'?'block':'none';
+        document.getElementById('callsScreen').style.display = sec==='calls'?'block':'none';
         document.getElementById('chatScreen').style.display = 'none';
-        if(section==='chats') renderChatsList();
-        else if(section==='posts') renderPosts();
-        else if(section==='calls') renderCallsLog();
+        if(sec==='chats') renderChatsList();
+        else if(sec==='posts') renderPosts();
+        else if(sec==='calls') renderCallsLog();
     };
 });
-document.getElementById('closeCallsBtn').onclick = ()=>{ document.querySelector('.nav-item[data-section="chats"]').click(); };
+document.getElementById('closeCallsBtn').onclick = ()=> document.querySelector('.nav-item[data-section="chats"]').click();
 
-// ======================= الإعدادات =======================
+// ---------- الإعدادات والخروج ----------
 document.getElementById('adminIcon').onclick = ()=> { document.getElementById('settingsModal').style.display='block'; document.getElementById('adminPanelBtn').style.display=isDirector()?'block':'none'; };
 document.getElementById('logoutBtn').onclick = ()=>{ clearRememberedUser(); logout(); };
 function logout() {
@@ -885,8 +784,7 @@ window.toggleAdminPanel = ()=> {
     if(p.style.display==='block') renderDeleteEmployeeList();
 };
 function renderDeleteEmployeeList() {
-    const c = document.getElementById('empDeleteList');
-    c.innerHTML = allEmployees.map(e=>`<div style="display:flex;justify-content:space-between;background:#f8f9fa;margin:6px 0;padding:8px;border-radius:20px;"><span>${e.name} (${e.job})</span><button onclick="window.deleteEmployee('${e.id}')" style="background:#ff4444;border:none;color:white;border-radius:15px;padding:4px 12px;">حذف</button></div>`).join('');
+    document.getElementById('empDeleteList').innerHTML = allEmployees.map(e=>`<div style="display:flex;justify-content:space-between;background:#f8f9fa;margin:6px 0;padding:8px;border-radius:20px;"><span>${e.name} (${e.job})</span><button onclick="window.deleteEmployee('${e.id}')" style="background:#ff4444;border:none;color:white;border-radius:15px;padding:4px 12px;">حذف</button></div>`).join('');
 }
 window.addEmployee = async ()=>{
     const n=document.getElementById('newEmpName').value.trim(), id=document.getElementById('newEmpId').value.trim(), j=document.getElementById('newEmpJob').value.trim();
@@ -903,8 +801,8 @@ window.deleteEmployee = async (id)=>{
     const blob=new Blob(["\uFEFF"+csv],{type:"text/csv"}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='employees.csv'; a.click();
 };
 
-// ======================= بدء =======================
+// بدء التحميل
 loadEmployees();
 </script>
 </body>
-</html> 
+</html>
