@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -188,14 +187,11 @@
     async function loadEmployeesFromCSV() {
         try {
             const response = await fetch(CSV_URL);
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
             const csvText = await response.text();
             parseCSV(csvText);
-            
         } catch (error) {
             console.error('خطأ في تحميل CSV:', error);
             document.getElementById('statusBar').innerHTML = `❌ فشل تحميل الملف: ${error.message}<br>تأكد من صحة الرابط`;
@@ -203,49 +199,31 @@
     }
     
     function parseCSV(csvText) {
-        // إزالة BOM إذا وجد (الأحرف المخفية في بداية الملف)
         let cleanText = csvText;
-        if (cleanText.charCodeAt(0) === 0xFEFF) {
-            cleanText = cleanText.slice(1);
-        }
-        
+        if (cleanText.charCodeAt(0) === 0xFEFF) cleanText = cleanText.slice(1);
         const lines = cleanText.split('\n').filter(line => line.trim());
-        
         if (lines.length === 0) {
             document.getElementById('statusBar').innerHTML = '❌ الملف فارغ';
             return;
         }
-        
-        // تخطي سطر الرأس (الذي يحتوي على "الرقم الوظيفي;اللقب والاسم;الوظيفة")
         let startIndex = 0;
-        const firstLine = lines[0];
-        if (firstLine.includes('الرقم') || firstLine.includes('id') || firstLine.includes('اسم')) {
-            startIndex = 1;
-        }
-        
+        if (lines[0].includes('الرقم') || lines[0].includes('id')) startIndex = 1;
         allEmployees = [];
-        
         for (let i = startIndex; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
-            
-            // تقسيم السطر باستخدام الفاصلة المنقوطة (;)
             const parts = line.split(';');
-            
             if (parts.length >= 2) {
-                const employee = {
+                allEmployees.push({
                     id: parts[0].trim(),
                     name: parts[1].trim(),
                     job: parts[2] ? parts[2].trim() : 'موظف'
-                };
-                allEmployees.push(employee);
+                });
             }
         }
-        
         if (allEmployees.length === 0) {
             document.getElementById('statusBar').innerHTML = '❌ لم يتم العثور على بيانات صالحة في الملف';
         } else {
-            // حفظ البيانات في localStorage كنسخة احتياطية
             localStorage.setItem('employees_backup', JSON.stringify(allEmployees));
             document.getElementById('statusBar').innerHTML = `✅ تم تحميل ${allEmployees.length} موظف`;
             document.getElementById('searchPhase').style.display = 'block';
@@ -253,40 +231,28 @@
         }
     }
     
-    // تحميل البيانات من localStorage
     function loadLocalData() {
         const savedPosts = localStorage.getItem('posts');
         if (savedPosts) posts = JSON.parse(savedPosts);
-        
         const savedUnread = localStorage.getItem('unread_counts');
         if (savedUnread) unreadCounts = JSON.parse(savedUnread);
     }
     
-    function savePosts() {
-        localStorage.setItem('posts', JSON.stringify(posts));
-    }
+    function savePosts() { localStorage.setItem('posts', JSON.stringify(posts)); }
+    function saveUnread() { localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); }
     
-    function saveUnread() {
-        localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
-    }
-    
-    // ---------- البحث عن موظف ----------
+    // البحث عن موظف
     function searchEmployees() {
         const query = document.getElementById('loginSearch').value.trim();
         const dropdown = document.getElementById('searchDropdown');
         if (!query) { dropdown.style.display = 'none'; return; }
-        
         const matches = allEmployees.filter(e => e.name.includes(query));
-        if (matches.length === 0) {
-            dropdown.innerHTML = '<div style="padding:12px;">❌ لا يوجد موظف بهذا الاسم</div>';
-        } else {
-            dropdown.innerHTML = matches.map(emp => `
-                <div class="dropdown-item" onclick="selectEmployee('${emp.id}')">
-                    <div style="width:40px;height:40px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">${emp.name.charAt(0)}</div>
-                    <div style="text-align:right;"><strong>${emp.name}</strong><br><small style="color:gray;">${emp.job}</small></div>
-                </div>
-            `).join('');
-        }
+        dropdown.innerHTML = matches.length ? matches.map(emp => `
+            <div class="dropdown-item" onclick="selectEmployee('${emp.id}')">
+                <div style="width:40px;height:40px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">${emp.name.charAt(0)}</div>
+                <div style="text-align:right;"><strong>${emp.name}</strong><br><small style="color:gray;">${emp.job}</small></div>
+            </div>
+        `).join('') : '<div style="padding:12px;">❌ لا يوجد موظف بهذا الاسم</div>';
         dropdown.style.display = 'block';
     }
     
@@ -312,16 +278,9 @@
     document.getElementById('setPasswordBtn').onclick = () => {
         const newPass = document.getElementById('newPassword').value;
         const confirmPass = document.getElementById('confirmPassword').value;
-        if (newPass.length < 3) {
-            showNotification('كلمة المرور قصيرة جداً (3 أحرف على الأقل)', '⚠️');
-            return;
-        }
-        if (newPass !== confirmPass) {
-            showNotification('كلمة المرور غير متطابقة', '⚠️');
-            return;
-        }
+        if (newPass.length < 3) { showNotification('كلمة المرور قصيرة جداً', '⚠️'); return; }
+        if (newPass !== confirmPass) { showNotification('كلمة المرور غير متطابقة', '⚠️'); return; }
         currentUser = selectedEmployee;
-        
         if (document.getElementById('rememberMeCheckbox').checked) {
             localStorage.setItem('remembered_user', JSON.stringify({ id: currentUser.id, password: newPass }));
         }
@@ -332,7 +291,6 @@
         document.getElementById('credentialsPhase').style.display = 'none';
         document.getElementById('searchPhase').style.display = 'block';
     };
-    
     document.getElementById('backToSearch2').onclick = () => {
         document.getElementById('passwordPhase').style.display = 'none';
         document.getElementById('searchPhase').style.display = 'block';
@@ -343,10 +301,7 @@
         if (remembered && allEmployees.length > 0) {
             const data = JSON.parse(remembered);
             const emp = allEmployees.find(e => e.id === data.id);
-            if (emp) {
-                currentUser = emp;
-                startApp();
-            }
+            if (emp) { currentUser = emp; startApp(); }
         }
     }
     
@@ -357,7 +312,6 @@
         renderStories();
         renderChatsList();
         renderPosts();
-        
         updateOnlineStatus();
         setInterval(updateOnlineStatus, 30000);
     }
@@ -367,6 +321,7 @@
         onlineUsers[currentUser.id] = { lastSeen: Date.now(), name: currentUser.name };
         localStorage.setItem('online_users', JSON.stringify(onlineUsers));
         renderStories();
+        renderChatsList(); // تحديث ترتيب المحادثات بناءً على التواجد
     }
     
     function isUserOnline(userId) {
@@ -375,22 +330,30 @@
         return (Date.now() - online[userId].lastSeen) < 60000;
     }
     
+    // عرض المتصلين أولاً في شريط القصص
     function renderStories() {
         const container = document.getElementById('storiesContainer');
+        let onlineOthers = [];
+        let offlineOthers = [];
+        allEmployees.forEach(emp => {
+            if (emp.id !== currentUser.id) {
+                if (isUserOnline(emp.id)) onlineOthers.push(emp);
+                else offlineOthers.push(emp);
+            }
+        });
+        // ترتيب: حسابي ثم المتصلين ثم غير المتصلين
+        const sortedOthers = [...onlineOthers, ...offlineOthers];
         let html = `<div class="online-user" onclick="changeAvatar()">
             <img src="${getAvatar(currentUser.id)}" class="story-avatar">
             <span style="font-size:11px;">حسابي</span>
         </div>`;
-        
-        const others = allEmployees.filter(e => e.id !== currentUser.id);
-        html += others.map(emp => `
+        html += sortedOthers.map(emp => `
             <div class="online-user" onclick="openChat('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')">
                 <img src="${getAvatar(emp.id)}" class="story-avatar">
                 ${isUserOnline(emp.id) ? '<div class="active-dot"></div>' : ''}
                 <span style="font-size:11px;">${emp.name.split(' ')[0]}</span>
             </div>
         `).join('');
-        
         container.innerHTML = html;
     }
     
@@ -398,16 +361,10 @@
         const saved = localStorage.getItem(`avatar_${userId}`);
         if (saved) return saved;
         const emp = allEmployees.find(e => e.id === userId);
-        if (emp) {
-            return `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=0084ff&color=fff&size=100`;
-        }
-        return `https://ui-avatars.com/api/?name=User&background=0084ff&color=fff&size=100`;
+        return emp ? `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=0084ff&color=fff&size=100` : `https://ui-avatars.com/api/?name=User&background=0084ff&color=fff&size=100`;
     }
     
-    function changeAvatar() {
-        document.getElementById('avatarInput').click();
-    }
-    
+    function changeAvatar() { document.getElementById('avatarInput').click(); }
     function updateAvatar(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -421,146 +378,96 @@
         reader.readAsDataURL(file);
     }
     
-    function getChatId(userId) {
-        return [currentUser.id, userId].sort().join('_');
-    }
-    
+    function getChatId(userId) { return [currentUser.id, userId].sort().join('_'); }
     function loadMessages(chatId) {
         const saved = localStorage.getItem(`messages_${chatId}`);
-        if (saved) {
-            messages[chatId] = JSON.parse(saved);
-        } else {
-            messages[chatId] = [];
-        }
+        messages[chatId] = saved ? JSON.parse(saved) : [];
         return messages[chatId];
     }
-    
-    function saveMessages(chatId) {
-        localStorage.setItem(`messages_${chatId}`, JSON.stringify(messages[chatId] || []));
-    }
+    function saveMessages(chatId) { localStorage.setItem(`messages_${chatId}`, JSON.stringify(messages[chatId] || [])); }
     
     function openChat(userId, userName) {
         activeChat = { id: userId, name: userName };
         const chatId = getChatId(userId);
-        
-        if (unreadCounts[chatId]) {
-            delete unreadCounts[chatId];
-            saveUnread();
-            renderChatsList();
-        }
-        
+        if (unreadCounts[chatId]) { delete unreadCounts[chatId]; saveUnread(); renderChatsList(); }
         document.getElementById('chatHeaderName').innerText = userName;
         document.getElementById('chatHeaderImg').src = getAvatar(userId);
-        
-        // المدير (بوخضرة زواوي) يمكنه حذف المحادثات
         const isDirector = currentUser.id === '1098107010228600';
         document.getElementById('deleteChatBtn').style.display = isDirector ? 'inline-block' : 'none';
-        
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('chatScreen').style.display = 'flex';
-        
         renderMessages(chatId);
     }
     
     function renderMessages(chatId) {
         const msgs = loadMessages(chatId);
         const container = document.getElementById('messagesContainer');
-        
-        if (msgs.length === 0) {
-            container.innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">✨ لا توجد رسائل بعد</div>';
-            return;
-        }
-        
+        if (!msgs.length) { container.innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">✨ لا توجد رسائل بعد</div>'; return; }
         container.innerHTML = msgs.map(msg => {
             const isMine = msg.sender === currentUser.id;
-            const time = new Date(msg.time).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
-            return `
-                <div class="message ${isMine ? 'sent' : 'received'}">
-                    <div class="bubble">${escapeHtml(msg.text)}</div>
-                    <div class="msg-time">${time}</div>
-                </div>
-            `;
+            const time = new Date(msg.time).toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' });
+            return `<div class="message ${isMine ? 'sent' : 'received'}"><div class="bubble">${escapeHtml(msg.text)}</div><div class="msg-time">${time}</div></div>`;
         }).join('');
-        
-        setTimeout(() => {
-            container.scrollTop = container.scrollHeight;
-        }, 100);
+        setTimeout(() => container.scrollTop = container.scrollHeight, 100);
     }
     
     function sendMessage() {
         const input = document.getElementById('msgInput');
         const text = input.value.trim();
         if (!text || !activeChat) return;
-        
         const chatId = getChatId(activeChat.id);
         const msgs = loadMessages(chatId);
-        
-        msgs.push({
-            id: Date.now(),
-            sender: currentUser.id,
-            text: text,
-            time: new Date().toISOString()
-        });
-        
+        msgs.push({ id: Date.now(), sender: currentUser.id, text: text, time: new Date().toISOString() });
         messages[chatId] = msgs;
         saveMessages(chatId);
-        
         input.value = '';
         renderMessages(chatId);
         renderChatsList();
     }
     
+    // ترتيب المحادثات بحيث تظهر المحادثات مع المتصلين أولاً
     function renderChatsList() {
         const container = document.getElementById('chatsList');
-        const chats = new Set();
-        
+        const chatsSet = new Set();
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && key.startsWith('messages_')) {
-                const chatId = key.replace('messages_', '');
-                chats.add(chatId);
-            }
+            if (key && key.startsWith('messages_')) chatsSet.add(key.replace('messages_', ''));
         }
-        
-        if (chats.size === 0) {
+        if (chatsSet.size === 0) {
             container.innerHTML = '<div style="text-align:center;padding:40px;color:gray;">💬 لا توجد محادثات بعد<br><small>ابحث عن موظف وابدأ الدردشة</small></div>';
             return;
         }
-        
-        let html = '';
-        for (const chatId of chats) {
+        let chatsList = [];
+        for (const chatId of chatsSet) {
             const ids = chatId.split('_');
             const otherId = ids.find(id => id !== currentUser.id);
             if (!otherId) continue;
-            
             const emp = allEmployees.find(e => e.id === otherId);
             if (!emp) continue;
-            
             const msgs = loadMessages(chatId);
-            const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].text.substring(0, 40) : 'بدء المحادثة';
+            const lastMsg = msgs.length ? msgs[msgs.length-1].text.substring(0,40) : 'بدء المحادثة';
             const unread = unreadCounts[chatId] || 0;
-            
+            chatsList.push({ chatId, emp, lastMsg, unread, isOnline: isUserOnline(otherId) });
+        }
+        // ترتيب: المتصلين أولاً، ثم غير المتصلين
+        chatsList.sort((a,b) => (b.isOnline - a.isOnline));
+        let html = '';
+        for (const chat of chatsList) {
             html += `
-                <div class="chat-row" onclick="openChat('${emp.id}', '${emp.name.replace(/'/g, "\\'")}')">
-                    <img src="${getAvatar(emp.id)}" style="width:50px;height:50px;border-radius:50%;">
+                <div class="chat-row" onclick="openChat('${chat.emp.id}', '${chat.emp.name.replace(/'/g, "\\'")}')">
+                    <img src="${getAvatar(chat.emp.id)}" style="width:50px;height:50px;border-radius:50%;">
                     <div class="chat-info">
-                        <h5>${escapeHtml(emp.name)}</h5>
-                        <p>${escapeHtml(lastMsg)}</p>
+                        <h5>${escapeHtml(chat.emp.name)} ${chat.isOnline ? '<span style="color:#31a24c; font-size:10px;">● متصل</span>' : ''}</h5>
+                        <p>${escapeHtml(chat.lastMsg)}</p>
                     </div>
-                    ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
+                    ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
                 </div>
             `;
         }
-        
         container.innerHTML = html;
     }
     
-    function handleEnterKey(event) {
-        if (event.key === 'Enter') {
-            sendMessage();
-        }
-    }
-    
+    function handleEnterKey(event) { if (event.key === 'Enter') sendMessage(); }
     document.getElementById('sendBtn').onclick = sendMessage;
     document.getElementById('closeChatBtn').onclick = () => {
         activeChat = null;
@@ -569,124 +476,59 @@
         renderChatsList();
     };
     
-    // ======================= المنشورات =======================
+    // المنشورات
     function renderPosts() {
         const container = document.getElementById('postsContainer');
-        
-        let html = `
-            <div class="create-post-area">
-                <textarea id="newPostText" placeholder="ما الذي يدور في ذهنك؟" rows="2"></textarea>
-                <button onclick="createPost()" style="background:var(--primary);color:white;border:none;border-radius:25px;padding:10px 20px;margin-top:8px;width:100%;cursor:pointer;">📢 نشر</button>
-            </div>
-        `;
-        
-        if (posts.length === 0) {
-            html += '<div style="text-align:center;padding:40px;color:gray;">لا توجد منشورات بعد<br><small>كن أول من ينشر!</small></div>';
-        } else {
-            // عرض آخر 50 منشور فقط
-            const recentPosts = [...posts].reverse().slice(0, 50);
+        let html = `<div class="create-post-area"><textarea id="newPostText" placeholder="ما الذي يدور في ذهنك؟" rows="2"></textarea><button onclick="createPost()" style="background:var(--primary);color:white;border:none;border-radius:25px;padding:10px 20px;margin-top:8px;width:100%;cursor:pointer;">📢 نشر</button></div>`;
+        if (!posts.length) html += '<div style="text-align:center;padding:40px;color:gray;">لا توجد منشورات بعد</div>';
+        else {
+            const recentPosts = [...posts].reverse().slice(0,50);
             html += recentPosts.map(post => {
                 const user = allEmployees.find(e => e.id === post.userId) || { name: 'مستخدم', id: post.userId };
                 const isLiked = post.likes?.includes(currentUser.id);
                 const time = new Date(post.time).toLocaleString('ar');
-                const shortName = user.name.length > 20 ? user.name.substring(0, 20) + '...' : user.name;
-                
-                return `
-                    <div class="post-card">
-                        <div class="post-header">
-                            <img src="${getAvatar(post.userId)}" class="post-avatar" onclick="openChat('${post.userId}', '${user.name.replace(/'/g, "\\'")}')">
-                            <div><strong>${escapeHtml(shortName)}</strong><br><small style="color:gray;">${time}</small></div>
-                        </div>
-                        <div class="post-body">${escapeHtml(post.text)}</div>
-                        <div class="post-actions">
-                            <span onclick="toggleLike('${post.id}')">
-                                <i class="fas fa-heart" style="color:${isLiked ? '#e91e63' : 'gray'}"></i> ${post.likes?.length || 0}
-                            </span>
-                            <span onclick="shareToChat('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>
-                            ${(post.userId === currentUser.id || currentUser.id === '1098107010228600') ? 
-                                `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}
-                        </div>
-                    </div>
-                `;
+                return `<div class="post-card"><div class="post-header"><img src="${getAvatar(post.userId)}" class="post-avatar" onclick="openChat('${post.userId}', '${user.name.replace(/'/g, "\\'")}')"><div><strong>${escapeHtml(user.name)}</strong><br><small style="color:gray;">${time}</small></div></div><div class="post-body">${escapeHtml(post.text)}</div><div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart" style="color:${isLiked ? '#e91e63' : 'gray'}"></i> ${post.likes?.length || 0}</span><span onclick="shareToChat('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${(post.userId === currentUser.id || currentUser.id === '1098107010228600') ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}</div></div>`;
             }).join('');
         }
-        
         container.innerHTML = html;
     }
     
     function createPost() {
         const text = document.getElementById('newPostText').value.trim();
-        if (!text) {
-            showNotification('الرجاء كتابة منشور', '⚠️');
-            return;
-        }
-        
-        posts.unshift({
-            id: Date.now().toString(),
-            userId: currentUser.id,
-            text: text,
-            time: new Date().toISOString(),
-            likes: []
-        });
-        
-        // الاحتفاظ بآخر 200 منشور فقط
-        if (posts.length > 200) posts = posts.slice(0, 200);
-        
+        if (!text) { showNotification('الرجاء كتابة منشور', '⚠️'); return; }
+        posts.unshift({ id: Date.now().toString(), userId: currentUser.id, text, time: new Date().toISOString(), likes: [] });
+        if (posts.length > 200) posts = posts.slice(0,200);
         savePosts();
         document.getElementById('newPostText').value = '';
         renderPosts();
         showNotification('تم نشر المنشور', '✅');
     }
-    
     function toggleLike(postId) {
         const post = posts.find(p => p.id === postId);
         if (post) {
-            if (post.likes.includes(currentUser.id)) {
-                post.likes = post.likes.filter(id => id !== currentUser.id);
-            } else {
-                post.likes.push(currentUser.id);
-            }
+            if (post.likes.includes(currentUser.id)) post.likes = post.likes.filter(id => id !== currentUser.id);
+            else post.likes.push(currentUser.id);
             savePosts();
             renderPosts();
         }
     }
-    
-    function shareToChat(postId) {
-        const post = posts.find(p => p.id === postId);
-        if (post) {
-            showNotification('تمت المشاركة', '📢');
-        }
-    }
-    
+    function shareToChat(postId) { showNotification('تمت المشاركة', '📢'); }
     function deletePost(postId) {
-        if (confirm('هل تريد حذف هذا المنشور؟')) {
-            posts = posts.filter(p => p.id !== postId);
-            savePosts();
-            renderPosts();
-            showNotification('تم حذف المنشور', '🗑️');
-        }
+        if (confirm('حذف المنشور؟')) { posts = posts.filter(p => p.id !== postId); savePosts(); renderPosts(); showNotification('تم حذف المنشور', '🗑️'); }
     }
-    
     function deleteAllMessages() {
-        if (!confirm('هل تريد حذف جميع رسائل هذه المحادثة؟')) return;
+        if (!confirm('حذف جميع رسائل المحادثة؟')) return;
         const chatId = getChatId(activeChat.id);
         messages[chatId] = [];
         saveMessages(chatId);
         renderMessages(chatId);
         showNotification('تم حذف جميع الرسائل', '🗑️');
     }
-    
     document.getElementById('deleteChatBtn').onclick = deleteAllMessages;
     
-    // ======================= الإعدادات والتنقل =======================
-    document.getElementById('settingsIcon').onclick = () => {
-        document.getElementById('settingsModal').style.display = 'block';
-    };
-    
-    function closeSettings() {
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-    
+    // الإعدادات
+    document.getElementById('settingsIcon').onclick = () => { document.getElementById('settingsModal').style.display = 'block'; };
+    function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
     function logout() {
         localStorage.removeItem('remembered_user');
         currentUser = null;
@@ -699,70 +541,36 @@
         document.getElementById('loginSearch').value = '';
         closeSettings();
     }
-    
     document.getElementById('logoutBtn').onclick = logout;
     
     function showNotification(message, icon = '🔔') {
         const notif = document.getElementById('notification');
         notif.innerHTML = `${icon} ${message}`;
         notif.style.display = 'block';
-        setTimeout(() => {
-            notif.style.display = 'none';
-        }, 2500);
+        setTimeout(() => notif.style.display = 'none', 2500);
     }
+    function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
     
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    // التنقل بين الشاشات
+    // التنقل
     document.querySelectorAll('.nav-item').forEach(item => {
         item.onclick = () => {
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             item.classList.add('active');
             const section = item.dataset.section;
-            
             const chatsList = document.getElementById('chatsList');
             const postsContainer = document.getElementById('postsContainer');
-            
-            if (section === 'chats') {
-                chatsList.style.display = 'block';
-                postsContainer.style.display = 'none';
-                renderChatsList();
-            } else {
-                chatsList.style.display = 'none';
-                postsContainer.style.display = 'block';
-                renderPosts();
-            }
+            if (section === 'chats') { chatsList.style.display = 'block'; postsContainer.style.display = 'none'; renderChatsList(); }
+            else { chatsList.style.display = 'none'; postsContainer.style.display = 'block'; renderPosts(); }
         };
     });
     
-    // بدء التحميل
-    async function init() {
-        loadLocalData();
-        await loadEmployeesFromCSV();
-        if (allEmployees.length > 0) {
-            checkAutoLogin();
-        }
-    }
-    
+    async function init() { loadLocalData(); await loadEmployeesFromCSV(); if (allEmployees.length) checkAutoLogin(); }
     init();
     
-    // تعريف الدوال globally
-    window.searchEmployees = searchEmployees;
-    window.selectEmployee = selectEmployee;
-    window.openChat = openChat;
-    window.changeAvatar = changeAvatar;
-    window.updateAvatar = updateAvatar;
-    window.createPost = createPost;
-    window.toggleLike = toggleLike;
-    window.shareToChat = shareToChat;
-    window.deletePost = deletePost;
-    window.closeSettings = closeSettings;
-    window.handleEnterKey = handleEnterKey;
+    window.searchEmployees = searchEmployees; window.selectEmployee = selectEmployee; window.openChat = openChat;
+    window.changeAvatar = changeAvatar; window.updateAvatar = updateAvatar; window.createPost = createPost;
+    window.toggleLike = toggleLike; window.shareToChat = shareToChat; window.deletePost = deletePost;
+    window.closeSettings = closeSettings; window.handleEnterKey = handleEnterKey;
 </script>
 </body>
 </html>
-```
