@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+               <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -49,7 +49,7 @@
         .chat-info { flex: 1; margin-right: 12px; }
         .chat-info h5 { font-size: 15px; margin-bottom: 4px; }
         .chat-info p { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .unread-badge { background: var(--badge-bg); color: white; border-radius: 50%; min-width: 20px; height: 20px; font-size: 11px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+        .unread-badge { background: var(--badge-bg); color: white; border-radius: 50%; min-width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; padding: 0 6px; font-weight: bold; }
         
         /* شاشة الدردشة */
         .chat-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; display: none; flex-direction: column; }
@@ -117,6 +117,10 @@
         .call-buttons { display: flex; gap: 12px; margin-left: 10px; }
         .call-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--primary); }
         .delete-btn { color: #d32f2f; cursor: pointer; }
+        
+        /* حالة الاتصال */
+        .online-status { font-size: 11px; color: var(--online-dot); margin-right: 5px; }
+        .offline-status { font-size: 11px; color: var(--text-muted); margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -169,7 +173,10 @@
         <div class="chat-header">
             <i class="fas fa-arrow-right" id="closeChatBtn" style="cursor:pointer; font-size:20px;"></i>
             <img id="chatHeaderImg" style="width: 45px; height: 45px; border-radius: 50%;">
-            <div style="flex:1;"><strong id="chatHeaderName"></strong></div>
+            <div style="flex:1;">
+                <strong id="chatHeaderName"></strong>
+                <div id="chatOnlineStatus" style="font-size: 11px;"></div>
+            </div>
             <div class="call-buttons">
                 <i class="fas fa-phone-alt call-btn" id="voiceCallBtn"></i>
                 <i class="fas fa-video call-btn" id="videoCallBtn"></i>
@@ -475,18 +482,34 @@
         setTimeout(() => { if (div.style.display === 'block') div.style.display = 'none'; }, 30000);
     }
     
-    // ======================= باقي الدوال (المحادثات والمنشورات) =======================
+    // ======================= حالة الاتصال =======================
     function updateOnlineStatus() {
         const onlineUsers = JSON.parse(localStorage.getItem('online_users') || '{}');
         onlineUsers[currentUser.id] = { lastSeen: Date.now(), name: currentUser.name };
         localStorage.setItem('online_users', JSON.stringify(onlineUsers));
         renderStories();
         renderChatsList();
+        
+        // تحديث حالة الاتصال في شاشة الدردشة المفتوحة
+        if (activeChat) {
+            updateChatHeaderStatus(activeChat.id);
+        }
     }
     
     function isUserOnline(userId) {
         const online = JSON.parse(localStorage.getItem('online_users') || '{}');
         return online[userId] && (Date.now() - online[userId].lastSeen) < 60000;
+    }
+    
+    function updateChatHeaderStatus(userId) {
+        const statusDiv = document.getElementById('chatOnlineStatus');
+        if (isUserOnline(userId)) {
+            statusDiv.innerHTML = '🟢 متصل الآن';
+            statusDiv.style.color = '#31a24c';
+        } else {
+            statusDiv.innerHTML = '⚫ غير متصل';
+            statusDiv.style.color = '#65676b';
+        }
     }
     
     function getAvatar(userId) {
@@ -509,18 +532,28 @@
         reader.readAsDataURL(file);
     };
     
+    // عرض المتصلين فقط في الأعلى
     function renderStories() {
         const container = document.getElementById('storiesContainer');
-        let onlineOthers = [], offlineOthers = [];
-        allEmployees.forEach(emp => {
-            if (emp.id !== currentUser.id) {
-                if (isUserOnline(emp.id)) onlineOthers.push(emp);
-                else offlineOthers.push(emp);
-            }
-        });
-        const sorted = [...onlineOthers, ...offlineOthers];
-        let html = `<div class="online-user" onclick="changeAvatar()"><img src="${getAvatar(currentUser.id)}" class="story-avatar"><span>حسابي</span></div>`;
-        html += sorted.map(emp => `<div class="online-user" onclick="openChat('${emp.id}','${emp.name.replace(/'/g, "\\'")}')"><img src="${getAvatar(emp.id)}" class="story-avatar">${isUserOnline(emp.id) ? '<div class="active-dot"></div>' : ''}<span>${emp.name.split(' ')[0]}</span></div>`).join('');
+        // فلترة الموظفين المتصلين فقط (باستثناء المستخدم الحالي)
+        const onlineEmployees = allEmployees.filter(emp => emp.id !== currentUser.id && isUserOnline(emp.id));
+        
+        let html = `<div class="online-user" onclick="changeAvatar()">
+            <img src="${getAvatar(currentUser.id)}" class="story-avatar">
+            <span style="font-size:11px;">حسابي</span>
+        </div>`;
+        
+        if (onlineEmployees.length === 0) {
+            html += '<div style="padding:10px;color:gray;font-size:12px;">لا يوجد متصلين حالياً</div>';
+        } else {
+            html += onlineEmployees.map(emp => `
+                <div class="online-user" onclick="openChat('${emp.id}','${emp.name.replace(/'/g, "\\'")}')">
+                    <img src="${getAvatar(emp.id)}" class="story-avatar">
+                    <div class="active-dot"></div>
+                    <span style="font-size:11px;">${emp.name.split(' ')[0]}</span>
+                </div>
+            `).join('');
+        }
         container.innerHTML = html;
     }
     
@@ -537,9 +570,17 @@
     window.openChat = function(userId, userName) {
         activeChat = { id: userId, name: userName };
         const chatId = getChatId(userId);
-        if (unreadCounts[chatId]) { delete unreadCounts[chatId]; saveUnread(); renderChatsList(); }
+        
+        // مسح الإشعارات عند فتح المحادثة
+        if (unreadCounts[chatId]) {
+            delete unreadCounts[chatId];
+            saveUnread();
+            renderChatsList();
+        }
+        
         document.getElementById('chatHeaderName').innerText = userName;
         document.getElementById('chatHeaderImg').src = getAvatar(userId);
+        updateChatHeaderStatus(userId);
         document.getElementById('deleteChatBtn').style.display = currentUser.id === '1098107010228600' ? 'inline-block' : 'none';
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('chatScreen').style.display = 'flex';
@@ -549,7 +590,7 @@
     function renderMessages(chatId) {
         const msgs = loadMessages(chatId);
         const container = document.getElementById('messagesContainer');
-        if (!msgs.length) { container.innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">✨ لا توجد رسائل</div>'; return; }
+        if (!msgs.length) { container.innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">✨ لا توجد رسائل بعد</div>'; return; }
         container.innerHTML = msgs.map(msg => {
             const isMine = msg.sender === currentUser.id;
             const time = new Date(msg.time).toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' });
@@ -572,14 +613,25 @@
         renderChatsList();
     }
     
+    // عرض جميع المحادثات السابقة مع عدد الرسائل غير المقروءة
     function renderChatsList() {
         const container = document.getElementById('chatsList');
         const chatsSet = new Set();
+        
+        // جمع جميع المحادثات من localStorage
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && key.startsWith('messages_')) chatsSet.add(key.replace('messages_', ''));
+            if (key && key.startsWith('messages_')) {
+                const chatId = key.replace('messages_', '');
+                chatsSet.add(chatId);
+            }
         }
-        if (!chatsSet.size) { container.innerHTML = '<div style="padding:40px;color:gray;">💬 لا توجد محادثات</div>'; return; }
+        
+        if (!chatsSet.size) { 
+            container.innerHTML = '<div style="padding:40px;color:gray;text-align:center;">💬 لا توجد محادثات سابقة<br><small>ابحث عن موظف وابدأ الدردشة</small></div>'; 
+            return;
+        }
+        
         let chats = [];
         for (const chatId of chatsSet) {
             const otherId = chatId.split('_').find(id => id !== currentUser.id);
@@ -588,21 +640,50 @@
             if (!emp) continue;
             const msgs = loadMessages(chatId);
             const lastMsg = msgs.length ? msgs[msgs.length-1].text.substring(0,40) : 'بدء المحادثة';
-            chats.push({ emp, lastMsg, unread: unreadCounts[chatId] || 0, isOnline: isUserOnline(otherId) });
+            const lastTime = msgs.length ? new Date(msgs[msgs.length-1].time) : new Date(0);
+            const unread = unreadCounts[chatId] || 0;
+            chats.push({ emp, lastMsg, lastTime, unread, isOnline: isUserOnline(otherId) });
         }
-        chats.sort((a,b) => b.isOnline - a.isOnline);
+        
+        // ترتيب حسب آخر رسالة (الأحدث أولاً)
+        chats.sort((a,b) => b.lastTime - a.lastTime);
+        
         container.innerHTML = chats.map(c => `
             <div class="chat-row" onclick="openChat('${c.emp.id}', '${c.emp.name.replace(/'/g, "\\'")}')">
                 <img src="${getAvatar(c.emp.id)}" style="width:50px;height:50px;border-radius:50%;">
-                <div class="chat-info"><h5>${escapeHtml(c.emp.name)} ${c.isOnline ? '<span style="color:#31a24c;">●</span>' : ''}</h5><p>${escapeHtml(c.lastMsg)}</p></div>
-                ${c.unread ? `<div class="unread-badge">${c.unread}</div>` : ''}
+                <div class="chat-info">
+                    <h5>
+                        ${escapeHtml(c.emp.name)} 
+                        ${c.isOnline ? '<span class="online-status">🟢 متصل</span>' : '<span class="offline-status">⚫ غير متصل</span>'}
+                    </h5>
+                    <p>${escapeHtml(c.lastMsg)}</p>
+                </div>
+                ${c.unread > 0 ? `<div class="unread-badge">${c.unread}</div>` : ''}
             </div>
         `).join('');
     }
     
+    // إضافة رسالة غير مقروءة (عند استلام رسالة والمستخدم ليس في المحادثة)
+    function addUnreadMessage(chatId, senderId) {
+        // لا نضيف إشعار إذا كان المرسل هو المستخدم الحالي
+        if (senderId === currentUser.id) return;
+        // لا نضيف إشعار إذا كانت المحادثة مفتوحة حالياً
+        if (activeChat && getChatId(activeChat.id) === chatId) return;
+        
+        unreadCounts[chatId] = (unreadCounts[chatId] || 0) + 1;
+        saveUnread();
+        renderChatsList();
+        showNotification(`رسالة جديدة من ${allEmployees.find(e => e.id === senderId)?.name || 'موظف'}`, '💬');
+    }
+    
     window.handleEnterKey = function(e) { if (e.key === 'Enter') sendMessage(); };
     document.getElementById('sendBtn').onclick = sendMessage;
-    document.getElementById('closeChatBtn').onclick = () => { activeChat = null; document.getElementById('chatScreen').style.display = 'none'; document.getElementById('mainView').style.display = 'flex'; renderChatsList(); };
+    document.getElementById('closeChatBtn').onclick = () => { 
+        activeChat = null; 
+        document.getElementById('chatScreen').style.display = 'none'; 
+        document.getElementById('mainView').style.display = 'flex'; 
+        renderChatsList(); 
+    };
     document.getElementById('voiceCallBtn').onclick = () => startCall('audio');
     document.getElementById('videoCallBtn').onclick = () => startCall('video');
     document.getElementById('hangupBtn').onclick = () => hangUp(true);
@@ -629,7 +710,7 @@
     function renderPosts() {
         const container = document.getElementById('postsContainer');
         let html = `<div class="create-post-area"><textarea id="newPostText" placeholder="ما الذي يدور في ذهنك؟" rows="2"></textarea><button onclick="createPost()" style="background:var(--primary);color:white;border:none;border-radius:25px;padding:10px;width:100%;cursor:pointer;">📢 نشر</button></div>`;
-        if (!posts.length) html += '<div style="padding:40px;color:gray;">لا توجد منشورات</div>';
+        if (!posts.length) html += '<div style="padding:40px;color:gray;text-align:center;">لا توجد منشورات بعد</div>';
         else {
             const recent = [...posts].reverse().slice(0,50);
             html += recent.map(post => {
@@ -669,12 +750,12 @@
     };
     
     function deleteAllMessages() {
-        if (!confirm('حذف جميع الرسائل؟')) return;
+        if (!confirm('حذف جميع رسائل هذه المحادثة؟')) return;
         const chatId = getChatId(activeChat.id);
         messages[chatId] = [];
         saveMessages(chatId);
         renderMessages(chatId);
-        showNotification('تم حذف الكل', '🗑️');
+        showNotification('تم حذف جميع الرسائل', '🗑️');
     }
     document.getElementById('deleteChatBtn').onclick = deleteAllMessages;
     
