@@ -105,6 +105,7 @@
             text-align: center;
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             min-width: 280px;
+            color: #050505;
         }
         .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; z-index: 10000; display: none; font-size: 13px; }
         .settings-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 20px; z-index: 3000; display: none; width: 90%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -112,9 +113,10 @@
         .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* أزرار المكالمات في الشات */
+        /* أزرار المكالمات */
         .call-buttons { display: flex; gap: 12px; margin-left: 10px; }
         .call-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--primary); }
+        .delete-btn { color: #d32f2f; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -169,10 +171,10 @@
             <img id="chatHeaderImg" style="width: 45px; height: 45px; border-radius: 50%;">
             <div style="flex:1;"><strong id="chatHeaderName"></strong></div>
             <div class="call-buttons">
-                <i class="fas fa-phone-alt call-btn" id="voiceCallBtn" style="color:var(--primary);"></i>
-                <i class="fas fa-video call-btn" id="videoCallBtn" style="color:var(--primary);"></i>
+                <i class="fas fa-phone-alt call-btn" id="voiceCallBtn"></i>
+                <i class="fas fa-video call-btn" id="videoCallBtn"></i>
             </div>
-            <i class="fas fa-trash-alt" id="deleteChatBtn" style="cursor:pointer; color:#d32f2f; display:none;"></i>
+            <i class="fas fa-trash-alt delete-btn" id="deleteChatBtn" style="display:none;"></i>
         </div>
         <div class="messages-container" id="messagesContainer"></div>
         <div class="input-area">
@@ -210,7 +212,7 @@
     // ======================= الإعدادات الأساسية =======================
     const SUPABASE_URL = 'https://nfywbkvsvmhaczfatxkp.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VZMRpated19TvFgjTuf1Lw_uW7dOiHY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
     let allEmployees = [];
     let currentUser = null;
@@ -223,7 +225,7 @@
     let localStream = null;
     let peerConnection = null;
     let isCallActive = false;
-    let currentCallType = null; // 'audio' or 'video'
+    let currentCallType = null;
     let targetUser = null;
     let pendingOffer = null;
     let pendingFrom = null;
@@ -274,7 +276,7 @@
     function saveUnread() { localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); }
     
     // ======================= البحث وتسجيل الدخول =======================
-    function searchEmployees() {
+    window.searchEmployees = function() {
         const query = document.getElementById('loginSearch').value.trim();
         const dropdown = document.getElementById('searchDropdown');
         if (!query) { dropdown.style.display = 'none'; return; }
@@ -286,16 +288,16 @@
             </div>
         `).join('') : '<div style="padding:12px;">❌ لا يوجد موظف</div>';
         dropdown.style.display = 'block';
-    }
+    };
     
     let selectedEmployee = null;
-    function selectEmployee(id) {
+    window.selectEmployee = function(id) {
         selectedEmployee = allEmployees.find(e => e.id === id);
         document.getElementById('selectedEmpName').innerHTML = `👤 ${selectedEmployee.name}<br><small>${selectedEmployee.job}</small>`;
         document.getElementById('searchPhase').style.display = 'none';
         document.getElementById('credentialsPhase').style.display = 'block';
         document.getElementById('searchDropdown').style.display = 'none';
-    }
+    };
     
     document.getElementById('verifyIdBtn').onclick = () => {
         const pass = document.getElementById('passInput').value;
@@ -343,8 +345,8 @@
     
     // إشارات المكالمات عبر Supabase
     async function initSignaling() {
-        if (signalingChannel) await supabase.removeChannel(signalingChannel);
-        signalingChannel = supabase.channel('signaling')
+        if (signalingChannel) await supabaseClient.removeChannel(signalingChannel);
+        signalingChannel = supabaseClient.channel('signaling')
             .on('broadcast', { event: 'call_offer' }, async ({ payload }) => {
                 if (payload.target === currentUser.id && !isCallActive) {
                     pendingOffer = payload.sdp;
@@ -445,6 +447,7 @@
         pendingFrom = null;
         callStartTime = null;
         peerConnection = null;
+        localStream = null;
     }
     
     function showIncomingCall(name, type, fromId) {
@@ -472,28 +475,6 @@
         setTimeout(() => { if (div.style.display === 'block') div.style.display = 'none'; }, 30000);
     }
     
-    document.getElementById('voiceCallBtn').onclick = () => startCall('audio');
-    document.getElementById('videoCallBtn').onclick = () => startCall('video');
-    document.getElementById('hangupBtn').onclick = () => hangUp(true);
-    document.getElementById('micBtn').onclick = () => {
-        if (localStream) {
-            const audioTrack = localStream.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = !audioTrack.enabled;
-                document.getElementById('micBtn').innerHTML = audioTrack.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
-            }
-        }
-    };
-    document.getElementById('camBtn').onclick = () => {
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled;
-                document.getElementById('camBtn').innerHTML = videoTrack.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
-            }
-        }
-    };
-    
     // ======================= باقي الدوال (المحادثات والمنشورات) =======================
     function updateOnlineStatus() {
         const onlineUsers = JSON.parse(localStorage.getItem('online_users') || '{}');
@@ -502,18 +483,21 @@
         renderStories();
         renderChatsList();
     }
+    
     function isUserOnline(userId) {
         const online = JSON.parse(localStorage.getItem('online_users') || '{}');
         return online[userId] && (Date.now() - online[userId].lastSeen) < 60000;
     }
+    
     function getAvatar(userId) {
         const saved = localStorage.getItem(`avatar_${userId}`);
         if (saved) return saved;
         const emp = allEmployees.find(e => e.id === userId);
         return emp ? `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=0084ff&color=fff&size=100` : '';
     }
-    function changeAvatar() { document.getElementById('avatarInput').click(); }
-    function updateAvatar(event) {
+    
+    window.changeAvatar = function() { document.getElementById('avatarInput').click(); };
+    window.updateAvatar = function(event) {
         const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
@@ -523,7 +507,8 @@
             showNotification('تم تحديث الصورة', '🖼️');
         };
         reader.readAsDataURL(file);
-    }
+    };
+    
     function renderStories() {
         const container = document.getElementById('storiesContainer');
         let onlineOthers = [], offlineOthers = [];
@@ -538,14 +523,18 @@
         html += sorted.map(emp => `<div class="online-user" onclick="openChat('${emp.id}','${emp.name.replace(/'/g, "\\'")}')"><img src="${getAvatar(emp.id)}" class="story-avatar">${isUserOnline(emp.id) ? '<div class="active-dot"></div>' : ''}<span>${emp.name.split(' ')[0]}</span></div>`).join('');
         container.innerHTML = html;
     }
+    
     function getChatId(userId) { return [currentUser.id, userId].sort().join('_'); }
+    
     function loadMessages(chatId) {
         const saved = localStorage.getItem(`messages_${chatId}`);
         messages[chatId] = saved ? JSON.parse(saved) : [];
         return messages[chatId];
     }
+    
     function saveMessages(chatId) { localStorage.setItem(`messages_${chatId}`, JSON.stringify(messages[chatId] || [])); }
-    function openChat(userId, userName) {
+    
+    window.openChat = function(userId, userName) {
         activeChat = { id: userId, name: userName };
         const chatId = getChatId(userId);
         if (unreadCounts[chatId]) { delete unreadCounts[chatId]; saveUnread(); renderChatsList(); }
@@ -555,7 +544,8 @@
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('chatScreen').style.display = 'flex';
         renderMessages(chatId);
-    }
+    };
+    
     function renderMessages(chatId) {
         const msgs = loadMessages(chatId);
         const container = document.getElementById('messagesContainer');
@@ -567,6 +557,7 @@
         }).join('');
         setTimeout(() => container.scrollTop = container.scrollHeight, 100);
     }
+    
     function sendMessage() {
         const input = document.getElementById('msgInput');
         const text = input.value.trim();
@@ -580,6 +571,7 @@
         renderMessages(chatId);
         renderChatsList();
     }
+    
     function renderChatsList() {
         const container = document.getElementById('chatsList');
         const chatsSet = new Set();
@@ -607,9 +599,31 @@
             </div>
         `).join('');
     }
-    function handleEnterKey(e) { if (e.key === 'Enter') sendMessage(); }
+    
+    window.handleEnterKey = function(e) { if (e.key === 'Enter') sendMessage(); };
     document.getElementById('sendBtn').onclick = sendMessage;
     document.getElementById('closeChatBtn').onclick = () => { activeChat = null; document.getElementById('chatScreen').style.display = 'none'; document.getElementById('mainView').style.display = 'flex'; renderChatsList(); };
+    document.getElementById('voiceCallBtn').onclick = () => startCall('audio');
+    document.getElementById('videoCallBtn').onclick = () => startCall('video');
+    document.getElementById('hangupBtn').onclick = () => hangUp(true);
+    document.getElementById('micBtn').onclick = () => {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                document.getElementById('micBtn').innerHTML = audioTrack.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+            }
+        }
+    };
+    document.getElementById('camBtn').onclick = () => {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('camBtn').innerHTML = videoTrack.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            }
+        }
+    };
     
     // المنشورات
     function renderPosts() {
@@ -622,12 +636,13 @@
                 const user = allEmployees.find(e => e.id === post.userId) || { name: 'مستخدم' };
                 const isLiked = post.likes?.includes(currentUser.id);
                 const time = new Date(post.time).toLocaleString('ar');
-                return `<div class="post-card"><div class="post-header"><img src="${getAvatar(post.userId)}" class="post-avatar" onclick="openChat('${post.userId}','${user.name}')"><div><strong>${escapeHtml(user.name)}</strong><br><small>${time}</small></div></div><div class="post-body">${escapeHtml(post.text)}</div><div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart" style="color:${isLiked ? '#e91e63' : 'gray'}"></i> ${post.likes?.length || 0}</span><span onclick="shareToChat('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${(post.userId === currentUser.id || currentUser.id === '1098107010228600') ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}</div></div>`;
+                return `<div class="post-card"><div class="post-header"><img src="${getAvatar(post.userId)}" class="post-avatar" onclick="openChat('${post.userId}','${user.name}')"><div><strong>${escapeHtml(user.name)}</strong><br><small>${time}</small></div></div><div class="post-body">${escapeHtml(post.text)}</div><div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart" style="color:${isLiked ? '#e91e63' : 'gray'}"></i> ${post.likes?.length || 0}</span><span onclick="shareToChat()"><i class="fas fa-share"></i> مشاركة</span>${(post.userId === currentUser.id || currentUser.id === '1098107010228600') ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}</div></div>`;
             }).join('');
         }
         container.innerHTML = html;
     }
-    function createPost() {
+    
+    window.createPost = function() {
         const text = document.getElementById('newPostText').value.trim();
         if (!text) { showNotification('اكتب منشوراً', '⚠️'); return; }
         posts.unshift({ id: Date.now().toString(), userId: currentUser.id, text, time: new Date().toISOString(), likes: [] });
@@ -636,19 +651,23 @@
         document.getElementById('newPostText').value = '';
         renderPosts();
         showNotification('تم النشر', '✅');
-    }
-    function toggleLike(postId) {
+    };
+    
+    window.toggleLike = function(postId) {
         const post = posts.find(p => p.id === postId);
         if (post) {
             if (post.likes.includes(currentUser.id)) post.likes = post.likes.filter(id => id !== currentUser.id);
             else post.likes.push(currentUser.id);
             savePosts(); renderPosts();
         }
-    }
-    function shareToChat() { showNotification('تمت المشاركة', '📢'); }
-    function deletePost(postId) {
+    };
+    
+    window.shareToChat = function() { showNotification('تمت المشاركة', '📢'); };
+    
+    window.deletePost = function(postId) {
         if (confirm('حذف المنشور؟')) { posts = posts.filter(p => p.id !== postId); savePosts(); renderPosts(); showNotification('تم الحذف', '🗑️'); }
-    }
+    };
+    
     function deleteAllMessages() {
         if (!confirm('حذف جميع الرسائل؟')) return;
         const chatId = getChatId(activeChat.id);
@@ -661,8 +680,8 @@
     
     // الإعدادات والخروج
     document.getElementById('settingsIcon').onclick = () => document.getElementById('settingsModal').style.display = 'block';
-    function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
-    function logout() {
+    window.closeSettings = function() { document.getElementById('settingsModal').style.display = 'none'; };
+    window.logout = function() {
         localStorage.removeItem('remembered_user');
         currentUser = null;
         document.getElementById('app').style.display = 'none';
@@ -672,15 +691,17 @@
         document.getElementById('passwordPhase').style.display = 'none';
         document.getElementById('loginSearch').value = '';
         closeSettings();
-        if (signalingChannel) supabase.removeChannel(signalingChannel);
-    }
-    document.getElementById('logoutBtn').onclick = logout;
+        if (signalingChannel) supabaseClient.removeChannel(signalingChannel);
+    };
+    document.getElementById('logoutBtn').onclick = () => logout();
+    
     function showNotification(msg, icon) {
         const n = document.getElementById('notification');
         n.innerHTML = `${icon} ${msg}`;
         n.style.display = 'block';
         setTimeout(() => n.style.display = 'none', 2500);
     }
+    
     function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
     
     // التنقل
@@ -698,11 +719,6 @@
     
     async function init() { loadLocalData(); await loadEmployeesFromCSV(); if (allEmployees.length) checkAutoLogin(); }
     init();
-    
-    window.searchEmployees = searchEmployees; window.selectEmployee = selectEmployee; window.openChat = openChat;
-    window.changeAvatar = changeAvatar; window.updateAvatar = updateAvatar; window.createPost = createPost;
-    window.toggleLike = toggleLike; window.shareToChat = shareToChat; window.deletePost = deletePost;
-    window.closeSettings = closeSettings; window.handleEnterKey = handleEnterKey;
 </script>
 </body>
 </html>
