@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Messenger Pro - المؤسسة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="data:,"> <!-- يمنع خطأ favicon.ico -->
+    <link rel="icon" href="data:,">
     <style>
         :root {
             --sky-bg: #f0f2f5;
@@ -27,10 +27,7 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         body { background: var(--sky-bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        .login-screen {
-            background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm);
-            max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto;
-        }
+        .login-screen { background: var(--card-bg); border-radius: 20px; box-shadow: var(--shadow-sm); max-width: 420px; width: 90%; padding: 20px 20px 15px; text-align: center; margin: 20px auto; }
         .login-screen h1 { font-size: 28px; margin-bottom: 5px; }
         .login-screen p { margin-bottom: 8px; }
         .input-field { width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--border-light); background: #f0f2f5; outline: none; margin: 6px 0; font-size: 14px; }
@@ -237,31 +234,80 @@ function getRememberedUser() { const d = localStorage.getItem('remembered_user')
 function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
 function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
 
-// ---------- صوت ----------
+// ---------- الأصوات (محسّنة، بدون ضجيج) ----------
 function playTone(type) {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        gain.gain.value = 0.15;
+        const now = ctx.currentTime;
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        gain.gain.value = 0.15; // مستوى صوت مريح
+
         if (type === 'message') {
-            osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime+0.15);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.2);
-            osc.start(); osc.stop(ctx.currentTime+0.2);
+            // نغمة رسائل نظيفة: نغمتان قصيرتان
+            const osc1 = ctx.createOscillator();
+            osc1.type = 'sine';
+            osc1.frequency.value = 800;
+            osc1.connect(gain);
+            osc1.start(now);
+            osc1.stop(now + 0.08);
+
+            const osc2 = ctx.createOscillator();
+            osc2.type = 'sine';
+            osc2.frequency.value = 1000;
+            osc2.connect(gain);
+            osc2.start(now + 0.12);
+            osc2.stop(now + 0.20);
         } else if (type === 'call') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(600, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime+0.6);
-            gain.gain.setValueAtTime(0.15, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.8);
-            osc.start(); osc.stop(ctx.currentTime+0.8);
+            // رنين متكرر 3 مرات
+            for (let i = 0; i < 3; i++) {
+                const start = now + i * 1.2;
+                const osc1 = ctx.createOscillator();
+                osc1.type = 'triangle';
+                osc1.frequency.value = 440;
+                osc1.connect(gain);
+                osc1.start(start);
+                osc1.stop(start + 0.35);
+                const osc2 = ctx.createOscillator();
+                osc2.type = 'triangle';
+                osc2.frequency.value = 480;
+                osc2.connect(gain);
+                osc2.start(start + 0.5);
+                osc2.stop(start + 0.85);
+            }
         }
-        if (navigator.vibrate) navigator.vibrate(type==='call' ? [500,300,500] : 200);
-    } catch(e) {}
+        // اهتزاز خفيف
+        if (navigator.vibrate) {
+            navigator.vibrate(type === 'call' ? [500, 300, 500] : 100);
+        }
+    } catch(e) { console.warn('الصوت غير متاح', e); }
 }
 
 // ---------- مساعدة ----------
 function showNotif(msg, icon='🔔') { const n=document.getElementById('notification'); n.innerHTML=icon+' '+msg; n.style.display='block'; setTimeout(()=>n.style.display='none',3000); }
 function scrollToBottom() { const c=document.getElementById('messagesContainer'); if(c) c.scrollTo({top:c.scrollHeight,behavior:'smooth'}); }
-function formatTime(d) { const date = new Date(d); return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`; }
-function formatTimeAgo(d) { const diff = Math.floor((new Date()-new Date(d))/1000); if(diff<60) return `منذ ${diff} ث`; if(diff<3600) return `منذ ${Math.floor(diff/60)} د`; if(diff<86400) return `منذ ${Math.floor(diff/3600)} س`; return new Date(d).toLocaleDateString('ar'); }
+// التوقيت بالفرنسية: HH:MM
+function formatTime(d) {
+    const date = new Date(d);
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+// التاريخ والوقت بالفرنسية: YYYY-MM-DD HH:MM
+function formatDateTime(d) {
+    const date = new Date(d);
+    const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day} ${time}`;
+}
+// "منذ" بالعربية (للحالات البسيطة فقط)
+function formatTimeAgo(d) {
+    const diff = Math.floor((new Date() - new Date(d)) / 1000);
+    if (diff < 60) return `منذ ${diff} ث`;
+    if (diff < 3600) return `منذ ${Math.floor(diff / 60)} د`;
+    if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} س`;
+    return formatDateTime(d);
+}
 function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function isDirector() { return currentUser?.id === DIRECTOR_ID; }
 function getActiveChatsKey() { return `active_chats_${currentUser.id}`; }
@@ -402,7 +448,7 @@ async function renderChatsList() {
         const emp = allEmployees.find(e => e.id === other); if (!emp) continue;
         const count = unreadCounts[chatId] || 0;
         let lastMsg = '', lastTime = '';
-        try { const { data: last } = await supabaseClient.from('messages').select('text,created_at').eq('chat_id', chatId).order('created_at', { ascending: false }).limit(1); if (last?.length) { lastMsg = last[0].text.replace(/<[^>]*>/g, '').substring(0, 40); lastTime = formatTimeAgo(last[0].created_at); } } catch (e) {}
+        try { const { data: last } = await supabaseClient.from('messages').select('text,created_at').eq('chat_id', chatId).order('created_at', { ascending: false }).limit(1); if (last?.length) { lastMsg = last[0].text.replace(/<[^>]*>/g, '').substring(0, 40); lastTime = formatDateTime(last[0].created_at); } } catch (e) {}
         html += `<div class="chat-row" onclick="openChat('${emp.id}','${emp.name}')"><div style="position:relative"><img src="${getAvatarUrl(emp.id)}" style="width:50px;height:50px;border-radius:50%;">${count > 0 ? `<div class="unread-badge">${count}</div>` : ''}</div><div class="chat-info"><h5>${escapeHtml(emp.name)}</h5><p>${lastMsg ? escapeHtml(lastMsg) : 'ابدأ المحادثة'}</p></div><div style="font-size:10px;color:gray;">${lastTime}</div></div>`;
     }
     container.innerHTML = html || '<div style="text-align:center;padding:40px;color:gray;">لا توجد محادثات بعد</div>';
@@ -501,7 +547,7 @@ async function renderPosts() {
             html += `<div class="post-card">
                 <div class="post-header">
                     <img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')">
-                    <div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div>
+                    <div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatDateTime(post.created_at)}</div></div>
                 </div>
                 <div class="post-body">${escapeHtml(post.text||'')}</div>
                 ${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}
@@ -599,9 +645,11 @@ async function fetchMessages(chatId) {
     const { data } = await supabaseClient.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
     const c = document.getElementById('messagesContainer');
     if (!data?.length) { c.innerHTML = '<div style="text-align:center;margin-top:50px;color:gray;">لا توجد رسائل</div>'; return; }
+    const today = new Date().toDateString();
     c.innerHTML = data.map(m => {
         const isMine = m.sender === currentUser.id;
-        const timeStr = formatTime(m.created_at);
+        const msgDate = new Date(m.created_at).toDateString();
+        const timeStr = (today === msgDate) ? formatTime(m.created_at) : formatDateTime(m.created_at);
         let senderName = '';
         if (activeChat?.id==='group' && !isMine) { const s = allEmployees.find(e=>e.id===m.sender); if (s) senderName = `<div style="font-size:11px;color:var(--primary);">${s.name}</div>`; }
         const canDelete = isMine || isDirector();
@@ -660,7 +708,7 @@ async function deleteAllMessages() {
 }
 document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
 
-// ---------- المكالمات ----------
+// ---------- المكالمات (محسّنة مع TURN) ----------
 window.startCall = async function(type) {
     if(!activeChat || activeChat.id==='group') return showNotif('اختر محادثة خاصة','⚠️');
     targetUser = allEmployees.find(e=>e.id===activeChat.id);
@@ -722,6 +770,7 @@ function showIncomingCall(name, type, fromId) {
 document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
 document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
 
+// سجل المكالمات
 function addCallLog(caller, callee, type, answered, dur) {
     const entry = { id: Date.now()+'_'+Math.random().toString(36).substr(2,6), caller_id:caller, callee_id:callee, call_type:type, answered, missed:!answered, duration_seconds:dur||0, timestamp: new Date().toISOString() };
     const l1 = JSON.parse(localStorage.getItem(`call_logs_${caller}`)||'[]'); l1.unshift(entry); localStorage.setItem(`call_logs_${caller}`, JSON.stringify(l1));
@@ -740,7 +789,7 @@ function renderCallsLog() {
         const icon = log.call_type==='video'?'<i class="fas fa-video"></i>':'<i class="fas fa-phone-alt"></i>';
         return `<div style="display:flex;align-items:center;padding:12px;background:white;border-radius:16px;margin-bottom:8px;" onclick="openChat('${partner.id}','${partner.name}')">
             <div style="width:45px;text-align:center;font-size:18px;${log.missed?'color:#f44336;':''}">${icon}</div>
-            <div style="flex:1;margin-right:10px;"><div>${partner.name}</div><div style="font-size:12px;color:gray;">${log.missed?'فائتة • ':''}${log.duration_seconds?formatDuration(log.duration_seconds)+' • ':''}${formatTimeAgo(log.timestamp)}</div></div>
+            <div style="flex:1;margin-right:10px;"><div>${partner.name}</div><div style="font-size:12px;color:gray;">${log.missed?'فائتة • ':''}${log.duration_seconds?formatDuration(log.duration_seconds)+' • ':''}${formatDateTime(log.timestamp)}</div></div>
             <button onclick="event.stopPropagation();startCallWithUser('${partner.id}','${log.call_type}')" style="border:1px solid var(--primary);border-radius:20px;padding:5px 12px;color:var(--primary);">معاودة</button>
         </div>`;
     }).join('');
@@ -765,7 +814,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 document.getElementById('closeCallsBtn').onclick = ()=> document.querySelector('.nav-item[data-section="chats"]').click();
 
-// ---------- الإعدادات ----------
+// ---------- الإعدادات والخروج ----------
 document.getElementById('adminIcon').onclick = ()=> { document.getElementById('settingsModal').style.display='block'; document.getElementById('adminPanelBtn').style.display=isDirector()?'block':'none'; };
 document.getElementById('logoutBtn').onclick = ()=>{ clearRememberedUser(); logout(); };
 function logout() {
@@ -804,7 +853,6 @@ window.deleteEmployee = async (id)=>{
     const blob=new Blob(["\uFEFF"+csv],{type:"text/csv"}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='employees.csv'; a.click();
 };
 
-// بدء التحميل
 loadEmployees();
 </script>
 </body>
