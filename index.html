@@ -24,6 +24,7 @@
             --border-light: #ced0d4;
             --badge-bg: #f02849;
             --like-color: #e91e63;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
         * {
             margin: 0;
@@ -31,13 +32,16 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
-        body {
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
             background: var(--sky-bg);
+        }
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
         }
         .login-screen {
             background: var(--card-bg);
@@ -45,17 +49,12 @@
             box-shadow: var(--shadow-sm);
             max-width: 420px;
             width: 90%;
-            padding: 20px 20px 15px;
+            padding: 20px;
             text-align: center;
-            margin: 20px auto;
+            margin: auto;
         }
-        .login-screen h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        .login-screen p {
-            margin-bottom: 8px;
-        }
+        .login-screen h1 { font-size: 28px; margin-bottom: 5px; }
+        .login-screen p { margin-bottom: 8px; }
         .input-field {
             width: 100%;
             padding: 10px;
@@ -83,9 +82,7 @@
             border-bottom: 1px solid #f0f0f0;
             transition: 0.2s;
         }
-        .dropdown-item:hover {
-            background: #f0f2f5;
-        }
+        .dropdown-item:hover { background: #f0f2f5; }
         .login-btn {
             width: 100%;
             padding: 12px;
@@ -99,23 +96,14 @@
             font-size: 15px;
             transition: 0.3s;
         }
-        .login-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        .link-btn {
-            background: none;
-            border: none;
-            color: var(--primary);
-            cursor: pointer;
-            margin-top: 6px;
-            font-size: 14px;
-        }
+        .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .link-btn { background: none; border: none; color: var(--primary); cursor: pointer; margin-top: 6px; font-size: 14px; }
+
         #app {
             display: none;
             width: 100%;
+            height: 100%;
             max-width: 500px;
-            height: 100vh;
             background: white;
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
@@ -130,11 +118,9 @@
             border-bottom: 1px solid #ddd;
             flex-shrink: 0;
             background: white;
+            z-index: 10;
         }
-        .main-header h2 {
-            font-size: 20px;
-            font-weight: bold;
-        }
+        .main-header h2 { font-size: 20px; font-weight: bold; }
         .online-bar {
             display: flex;
             padding: 10px 8px;
@@ -161,9 +147,7 @@
             object-fit: cover;
             transition: 0.2s;
         }
-        .story-avatar:hover {
-            transform: scale(1.05);
-        }
+        .story-avatar:hover { transform: scale(1.05); }
         .active-dot {
             width: 12px;
             height: 12px;
@@ -187,18 +171,9 @@
             transition: 0.2s;
             border-bottom: 1px solid #f5f5f5;
         }
-        .chat-row:hover {
-            background: #f5f5f5;
-        }
-        .chat-info {
-            margin-right: 10px;
-            flex: 1;
-        }
-        .chat-info h5 {
-            font-size: 14px;
-            margin-bottom: 2px;
-            color: var(--secondary);
-        }
+        .chat-row:hover { background: #f5f5f5; }
+        .chat-info { margin-right: 10px; flex: 1; }
+        .chat-info h5 { font-size: 14px; margin-bottom: 2px; color: var(--secondary); }
         .chat-info p {
             font-size: 12px;
             color: var(--text-muted);
@@ -247,12 +222,7 @@
             flex-shrink: 0;
             background: white;
         }
-        .chat-header img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+        .chat-header img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
         .messages-container {
             flex: 1;
             overflow-y: auto;
@@ -261,17 +231,11 @@
             flex-direction: column;
             gap: 8px;
             background: #fff;
+            padding-bottom: 10px;
         }
-        .message {
-            max-width: 75%;
-            position: relative;
-        }
-        .message.sent {
-            align-self: flex-end;
-        }
-        .message.received {
-            align-self: flex-start;
-        }
+        .message { max-width: 75%; position: relative; }
+        .message.sent { align-self: flex-end; }
+        .message.received { align-self: flex-start; }
         .bubble {
             padding: 8px 12px;
             border-radius: 18px;
@@ -298,13 +262,8 @@
             justify-content: space-between;
             gap: 6px;
         }
-        .sent .msg-time {
-            color: rgba(255,255,255,0.9);
-            flex-direction: row-reverse;
-        }
-        .received .msg-time {
-            color: #65676b;
-        }
+        .sent .msg-time { color: rgba(255,255,255,0.9); flex-direction: row-reverse; }
+        .received .msg-time { color: #65676b; }
         .delete-msg-btn {
             background: none;
             border: none;
@@ -314,23 +273,20 @@
             border-radius: 10px;
             transition: 0.2s;
         }
-        .sent .delete-msg-btn {
-            color: rgba(255,255,255,0.7);
-        }
-        .received .delete-msg-btn {
-            color: #999;
-        }
-        .delete-msg-btn:hover {
-            background: rgba(0,0,0,0.1);
-        }
+        .sent .delete-msg-btn { color: rgba(255,255,255,0.7); }
+        .received .delete-msg-btn { color: #999; }
+        .delete-msg-btn:hover { background: rgba(0,0,0,0.1); }
+        
+        /* شريط الإدخال يظل ظاهراً حتى مع لوحة المفاتيح */
         .input-area {
             padding: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
             border-top: 1px solid #eee;
-            flex-shrink: 0;
             background: white;
+            flex-shrink: 0;
+            padding-bottom: calc(10px + var(--safe-bottom));
         }
         .input-wrapper {
             flex: 1;
@@ -354,6 +310,7 @@
             border-top: 1px solid #eee;
             background: white;
             flex-shrink: 0;
+            padding-bottom: calc(10px + var(--safe-bottom));
         }
         .nav-item {
             cursor: pointer;
@@ -363,13 +320,9 @@
             border-radius: 20px;
             font-size: 13px;
         }
-        .nav-item.active {
-            color: var(--primary);
-            background: var(--primary-light);
-        }
-        .nav-item:not(.active) {
-            color: var(--text-muted);
-        }
+        .nav-item.active { color: var(--primary); background: var(--primary-light); }
+        .nav-item:not(.active) { color: var(--text-muted); }
+        
         .call-overlay {
             position: fixed;
             top: 0;
@@ -437,17 +390,8 @@
             text-align: center;
             transition: 0.2s;
         }
-        .settings-modal .option-btn:hover {
-            background: #f5f5f5;
-        }
-        .file-link {
-            color: var(--primary);
-            text-decoration: none;
-            word-break: break-all;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .settings-modal .option-btn:hover { background: #f5f5f5; }
+        .file-link { color: var(--primary); text-decoration: none; word-break: break-all; display: flex; align-items: center; gap: 5px; }
         .post-card {
             background: white;
             border-radius: 12px;
@@ -455,69 +399,17 @@
             margin: 10px 0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .post-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-        .post-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .post-body {
-            margin-bottom: 10px;
-            white-space: pre-wrap;
-        }
-        .post-image {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 8px;
-            cursor: pointer;
-        }
-        .post-actions {
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-        .post-actions span {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .post-actions i.liked {
-            color: var(--like-color);
-        }
-        .post-time {
-            font-size: 11px;
-            color: gray;
-            margin-right: auto;
-        }
-        .create-post-area {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        .create-post-area textarea {
-            width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 10px;
-            resize: vertical;
-            font-size: 14px;
-        }
-        .create-post-area .post-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-        }
+        .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .post-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .post-body { margin-bottom: 10px; white-space: pre-wrap; }
+        .post-image { max-width: 100%; border-radius: 8px; margin-top: 8px; cursor: pointer; }
+        .post-actions { display: flex; gap: 20px; font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+        .post-actions span { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .post-actions i.liked { color: var(--like-color); }
+        .post-time { font-size: 11px; color: gray; margin-right: auto; }
+        .create-post-area { background: white; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        .create-post-area textarea { width: 100%; border: 1px solid #ddd; border-radius: 12px; padding: 10px; resize: vertical; font-size: 14px; }
+        .create-post-area .post-toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
         .create-post-area .post-toolbar button {
             background: var(--primary);
             color: white;
@@ -539,6 +431,8 @@
     </style>
 </head>
 <body>
+
+<!-- شاشة تسجيل الدخول -->
 <div id="loginScreen" class="login-screen">
     <h1 style="color:var(--primary);">Messenger Pro</h1>
     <p style="color:var(--text-muted);">نظام تواصل المؤسسة الذكي</p>
@@ -574,6 +468,7 @@
     </div>
 </div>
 
+<!-- التطبيق الرئيسي -->
 <div id="app">
     <div id="mainView" style="display:flex; flex-direction:column; height:100%;">
         <div class="main-header">
@@ -605,6 +500,8 @@
             <div class="nav-item" data-section="calls"><i class="fas fa-phone-alt"></i><div>المكالمات</div></div>
         </div>
     </div>
+
+    <!-- شاشة المكالمات -->
     <div id="callsScreen" style="display:none; height:100%; overflow-y:auto; padding:10px;">
         <div style="display:flex; align-items:center; gap:15px; padding:10px; margin-bottom:10px;">
             <i class="fas fa-arrow-right" id="closeCallsBtn" style="cursor:pointer;"></i>
@@ -612,6 +509,8 @@
         </div>
         <div id="callsList"></div>
     </div>
+
+    <!-- شاشة الدردشة -->
     <div id="chatScreen" class="chat-screen">
         <div class="chat-header">
             <i class="fas fa-arrow-right" id="closeChatBtn" style="margin-left:10px; cursor:pointer; font-size:20px;"></i>
@@ -638,21 +537,16 @@
     </div>
 </div>
 
+<!-- واجهة المكالمة -->
 <div id="callOverlay" class="call-overlay">
     <div id="callPartnerName" style="font-size:24px; margin-bottom:10px;"></div>
     <div id="callStatus" style="margin:10px 0;">جاري الاتصال...</div>
     <video id="remoteVideo" style="width:90%; max-width:350px; background:#000; border-radius:20px; margin:10px 0;" autoplay playsinline></video>
     <video id="localVideo" style="position:absolute; bottom:70px; right:20px; width:100px; border-radius:10px; border:2px solid white; background:#222;" autoplay playsinline muted></video>
     <div style="margin-top:20px; display:flex; gap:20px;">
-        <button id="micBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:55px; height:55px; color:white; font-size:20px;">
-            <i class="fas fa-microphone"></i>
-        </button>
-        <button id="hangupBtn" style="background:#f44336; border:none; border-radius:50%; width:65px; height:65px; color:white; font-size:24px;">
-            <i class="fas fa-phone-slash"></i>
-        </button>
-        <button id="camBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:55px; height:55px; color:white; font-size:20px;">
-            <i class="fas fa-video"></i>
-        </button>
+        <button id="micBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:55px; height:55px; color:white; font-size:20px;"><i class="fas fa-microphone"></i></button>
+        <button id="hangupBtn" style="background:#f44336; border:none; border-radius:50%; width:65px; height:65px; color:white; font-size:24px;"><i class="fas fa-phone-slash"></i></button>
+        <button id="camBtn" style="background:rgba(255,255,255,0.2); border:none; border-radius:50%; width:55px; height:55px; color:white; font-size:20px;"><i class="fas fa-video"></i></button>
     </div>
 </div>
 
@@ -674,6 +568,16 @@
     const SUPABASE_KEY = 'sb_publishable_VZMRpated19TvFgjTuf1Lw_uW7dOiHY';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const DIRECTOR_ID = '1098107010228600';
+
+    // خوادم ICE محسّنة للمكالمات بين الهواتف
+    const ICE_SERVERS = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+    ];
 
     let allEmployees = [];
     let currentUser = null;
@@ -876,12 +780,7 @@
         showNotif(`👋 أهلاً ${currentUser.name}`);
         if (isDirector()) document.getElementById('adminPanelBtn').style.display = 'block';
         document.querySelector('.nav-item[data-section="chats"]').click();
-        if ('Notification' in window && Notification.permission === 'default') requestBrowserPermission();
-    }
-
-    function requestBrowserPermission() {
-        if (!('Notification' in window)) return;
-        Notification.requestPermission();
+        if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
     }
 
     function renderStories() {
@@ -1003,13 +902,10 @@
             document.getElementById('callOverlay').style.display = 'flex';
             if (targetUser) document.getElementById('callPartnerName').innerText = targetUser.name;
             document.getElementById('callStatus').innerHTML = '🔗 جاري الاتصال...';
-            const iceServers = [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
-            ];
-            peerConnection = new RTCPeerConnection({ iceServers });
+            
+            peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            
             peerConnection.ontrack = (event) => {
                 if (event.streams && event.streams[0]) {
                     document.getElementById('remoteVideo').srcObject = event.streams[0];
@@ -1028,6 +924,7 @@
                     hangUp(true);
                 }
             };
+            
             if (isAnswer && pendingOffer) {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer));
                 const answer = await peerConnection.createAnswer();
@@ -1276,8 +1173,10 @@
     }
     document.getElementById('deleteAllBtn').addEventListener('click', deleteAllMessages);
 
+    // تحسين التنقل ليعمل بلمس على الهاتف
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.onclick = function() {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             this.classList.add('active');
             const sec = this.dataset.section;
@@ -1289,7 +1188,7 @@
             if(sec==='chats') renderChatsList();
             else if(sec==='posts') renderPosts();
             else if(sec==='calls') renderCallsLog();
-        };
+        });
     });
     document.getElementById('closeCallsBtn').onclick = ()=> document.querySelector('.nav-item[data-section="chats"]').click();
 
