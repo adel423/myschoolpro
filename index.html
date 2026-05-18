@@ -1,4 +1,4 @@
-        <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -515,7 +515,6 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         loadRingtoneSetting();
-        // لا نحاول تسجيل Service Worker على Cloudflare Workers (غير مدعوم)
         await initChannels(); initPresence(); initSignaling(); initPostsRealtime();
         renderStories(); renderChatsList();
         showNotif(`👋 أهلاً ${currentUser.name}`);
@@ -806,7 +805,6 @@
                 const user = allEmployees.find(e => e.id === post.user_id) || { name: 'مستخدم', id: post.user_id };
                 const likeCount = (likesData.data || []).filter(l => l.post_id === post.id).length;
                 const isLiked = userLikes.has(post.id);
-                // زر الحذف يظهر للمؤلف أو المدير
                 const canDelete = (post.user_id === currentUser.id) || isDirector();
                 const deleteBtn = canDelete ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : '';
                 html += `<div class="post-card"><div class="post-header"><img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')"><div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div></div><div class="post-body">${escapeHtml(post.text||'')}</div>${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}<div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i> <span class="like-count" data-post-id="${post.id}">${likeCount}</span></span><span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${deleteBtn}</div></div>`;
