@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -262,31 +262,6 @@
     let currentRingtone = 'default';
     let ringingInterval = null;
 
-    // ---------- Service Worker (داخلي بدون ملف خارجي) ----------
-    function registerSW() {
-        if (!('serviceWorker' in navigator)) return;
-        const swCode = `
-            self.addEventListener('install', e => self.skipWaiting());
-            self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-            self.addEventListener('notificationclick', event => {
-                event.notification.close();
-                event.waitUntil(
-                    clients.matchAll({type:'window'}).then(clientList => {
-                        for (let client of clientList) {
-                            if ('focus' in client) return client.focus();
-                        }
-                        if (clients.openWindow) return clients.openWindow('/');
-                    })
-                );
-            });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl, { scope: '/' })
-            .then(reg => console.log('✅ SW مسجل بنجاح'))
-            .catch(err => console.warn('⚠️ فشل تسجيل SW (غير مؤثر):', err));
-    }
-
     function getRememberedUser() { const d = localStorage.getItem('remembered_user'); return d ? JSON.parse(d) : null; }
     function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
     function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
@@ -411,12 +386,7 @@
 
     function sendBrowserNotification(title, body) {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
-        navigator.serviceWorker.ready.then(reg => reg.showNotification(title, {
-            body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64',
-            tag: 'msg', vibrate: [200,100,200], requireInteraction: true
-        })).catch(() => {
-            new Notification(title, { body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64' });
-        });
+        new Notification(title, { body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64', tag: 'msg', vibrate: [200,100,200] });
     }
 
     function showNotif(msg, icon='🔔') {
@@ -545,7 +515,7 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         loadRingtoneSetting();
-        registerSW();
+        // لا نحاول تسجيل Service Worker على Cloudflare Workers (غير مدعوم)
         await initChannels(); initPresence(); initSignaling(); initPostsRealtime();
         renderStories(); renderChatsList();
         showNotif(`👋 أهلاً ${currentUser.name}`);
@@ -836,7 +806,10 @@
                 const user = allEmployees.find(e => e.id === post.user_id) || { name: 'مستخدم', id: post.user_id };
                 const likeCount = (likesData.data || []).filter(l => l.post_id === post.id).length;
                 const isLiked = userLikes.has(post.id);
-                html += `<div class="post-card"><div class="post-header"><img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')"><div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div></div><div class="post-body">${escapeHtml(post.text||'')}</div>${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}<div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i> <span class="like-count" data-post-id="${post.id}">${likeCount}</span></span><span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${(post.user_id===currentUser.id || isDirector()) ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : ''}</div></div>`;
+                // زر الحذف يظهر للمؤلف أو المدير
+                const canDelete = (post.user_id === currentUser.id) || isDirector();
+                const deleteBtn = canDelete ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : '';
+                html += `<div class="post-card"><div class="post-header"><img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')"><div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div></div><div class="post-body">${escapeHtml(post.text||'')}</div>${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}<div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i> <span class="like-count" data-post-id="${post.id}">${likeCount}</span></span><span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${deleteBtn}</div></div>`;
             }
             document.getElementById('postsList').innerHTML = html;
         } catch (e) { document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;color:red;">تعذر تحميل المنشورات.</div>'; }
@@ -876,7 +849,16 @@
             showNotif('تمت مشاركة المنشور في المجموعة');
         }
     }
-    async function deletePost(postId) { if (!confirm('حذف المنشور؟')) return; await supabaseClient.from('posts').delete().eq('id', postId); renderPosts(); }
+    async function deletePost(postId) {
+        if (!confirm('هل أنت متأكد من حذف المنشور؟')) return;
+        const { error } = await supabaseClient.from('posts').delete().eq('id', postId);
+        if (error) {
+            showNotif('فشل حذف المنشور: ' + error.message, '❌');
+        } else {
+            showNotif('تم حذف المنشور', '🗑️');
+            renderPosts();
+        }
+    }
 
     window.openChat = async (id, name) => {
         activeChat = { id, name };
