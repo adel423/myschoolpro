@@ -232,7 +232,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ======================= إعدادات =======================
     const SUPABASE_URL = 'https://nfywbkvsvmhaczfatxkp.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VZMRpated19TvFgjTuf1Lw_uW7dOiHY';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -261,29 +260,33 @@
     let pendingSignalingCandidates = [];
     let audioContext = null;
     let currentRingtone = 'default';
-    let ringingInterval = null; // لتكرار نغمة المكالمات
+    let ringingInterval = null;
 
-    // ---------- Service Worker مدمج ----------
+    // ---------- Service Worker (داخلي بدون ملف خارجي) ----------
     function registerSW() {
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', e => self.skipWaiting());
-                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-                self.addEventListener('notificationclick', event => {
-                    event.notification.close();
-                    event.waitUntil(clients.matchAll({type:'window'}).then(clientList => {
-                        for (let client of clientList) if ('focus' in client) return client.focus();
+        if (!('serviceWorker' in navigator)) return;
+        const swCode = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+            self.addEventListener('notificationclick', event => {
+                event.notification.close();
+                event.waitUntil(
+                    clients.matchAll({type:'window'}).then(clientList => {
+                        for (let client of clientList) {
+                            if ('focus' in client) return client.focus();
+                        }
                         if (clients.openWindow) return clients.openWindow('/');
-                    }));
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).then(() => console.log('SW مسجل')).catch(e => console.warn('فشل SW', e));
-        }
+                    })
+                );
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl, { scope: '/' })
+            .then(reg => console.log('✅ SW مسجل بنجاح'))
+            .catch(err => console.warn('⚠️ فشل تسجيل SW (غير مؤثر):', err));
     }
 
-    // ---------- دوال مساعدة ----------
     function getRememberedUser() { const d = localStorage.getItem('remembered_user'); return d ? JSON.parse(d) : null; }
     function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
     function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
@@ -294,7 +297,6 @@
         return audioContext;
     }
 
-    // نغمات متنوعة
     const ringtonePatterns = {
         default: (ctx, now) => {
             const playRing = (d) => {
@@ -804,7 +806,6 @@
     window.startCallWithUser = (userId, type) => { const p = allEmployees.find(e=>e.id===userId); if(p) openChat(userId, p.name); setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500); };
     function formatDuration(s) { const m=Math.floor(s/60), sec=s%60; return m?`${m}د ${sec}ث`:`${sec}ث`; }
 
-    // ---------- المنشورات (مع حذف) ----------
     async function initPostsRealtime() {
         try {
             if (postsChannel) supabaseClient.removeChannel(postsChannel);
@@ -877,7 +878,6 @@
     }
     async function deletePost(postId) { if (!confirm('حذف المنشور؟')) return; await supabaseClient.from('posts').delete().eq('id', postId); renderPosts(); }
 
-    // ---------- الدردشة ----------
     window.openChat = async (id, name) => {
         activeChat = { id, name };
         currentChatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
