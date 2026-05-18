@@ -232,13 +232,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // إعدادات Supabase
+    // ======================= إعدادات =======================
     const SUPABASE_URL = 'https://nfywbkvsvmhaczfatxkp.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VZMRpated19TvFgjTuf1Lw_uW7dOiHY';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const DIRECTOR_ID = '1098107010228600';
 
-    // خوادم ICE محسنة
     const ICE_SERVERS = [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
@@ -261,22 +260,41 @@
     let postImageFile = null;
     let pendingSignalingCandidates = [];
     let audioContext = null;
-    let currentRingtone = 'default'; // النغمة المختارة لجميع أنواع المكالمات (للتوافق مع الإعدادات السابقة)
+    let currentRingtone = 'default';
+    let ringingInterval = null; // لتكرار نغمة المكالمات
 
-    // ---------- دوال التخزين ----------
+    // ---------- Service Worker مدمج ----------
+    function registerSW() {
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                self.addEventListener('notificationclick', event => {
+                    event.notification.close();
+                    event.waitUntil(clients.matchAll({type:'window'}).then(clientList => {
+                        for (let client of clientList) if ('focus' in client) return client.focus();
+                        if (clients.openWindow) return clients.openWindow('/');
+                    }));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).then(() => console.log('SW مسجل')).catch(e => console.warn('فشل SW', e));
+        }
+    }
+
+    // ---------- دوال مساعدة ----------
     function getRememberedUser() { const d = localStorage.getItem('remembered_user'); return d ? JSON.parse(d) : null; }
     function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
     function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
 
-    // ---------- سياق الصوت ----------
     function getAudioContext() {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === 'suspended') audioContext.resume();
         return audioContext;
     }
 
-    // ---------- أنماط النغمات المختلفة ----------
-    // النغمات الأساسية التي يمكن اختيارها من الإعدادات (تطبق على جميع أنواع المكالمات)
+    // نغمات متنوعة
     const ringtonePatterns = {
         default: (ctx, now) => {
             const playRing = (d) => {
@@ -312,7 +330,6 @@
         }
     };
 
-    // النغمات الخاصة حسب نوع الحدث (رسالة، مكالمة صوت، مكالمة فيديو) - هذه ثابتة ولا تتغير
     const eventSpecificTones = {
         message: (ctx, now) => {
             const playDing = (t, f, v) => {
@@ -324,40 +341,19 @@
             playDing(now, 800, 0.25); playDing(now+0.15, 600, 0.2);
         },
         audio_call: (ctx, now) => {
-            // نغمة خاصة للمكالمات الصوتية (أهدأ وأطول)
             const o = ctx.createOscillator(), g = ctx.createGain();
-            o.type = 'sine';
-            o.frequency.setValueAtTime(400, now);
-            o.frequency.linearRampToValueAtTime(500, now + 0.8);
-            g.gain.setValueAtTime(0.12, now);
-            g.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            o.type = 'sine'; o.frequency.setValueAtTime(400, now); o.frequency.linearRampToValueAtTime(500, now + 0.8);
+            g.gain.setValueAtTime(0.12, now); g.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
             o.connect(g); g.connect(ctx.destination); o.start(now); o.stop(now + 1.2);
-            // نبضة قصيرة بعدها
-            setTimeout(() => {
-                if (audioContext) {
-                    const o2 = ctx.createOscillator(), g2 = ctx.createGain();
-                    o2.type = 'sine'; o2.frequency.setValueAtTime(500, ctx.currentTime);
-                    g2.gain.setValueAtTime(0.1, ctx.currentTime); g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-                    o2.connect(g2); g2.connect(ctx.destination); o2.start(ctx.currentTime); o2.stop(ctx.currentTime + 0.3);
-                }
-            }, 1200);
         },
         video_call: (ctx, now) => {
-            // نغمة لمكالمات الفيديو (أكثر حيوية)
             const notes = [523.25, 659.25, 783.99];
             notes.forEach((freq, i) => {
                 const o = ctx.createOscillator(), g = ctx.createGain();
-                o.type = 'triangle';
-                o.frequency.setValueAtTime(freq, now + i * 0.2);
-                g.gain.setValueAtTime(0.12, now + i * 0.2);
-                g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.15);
+                o.type = 'triangle'; o.frequency.setValueAtTime(freq, now + i * 0.2);
+                g.gain.setValueAtTime(0.12, now + i * 0.2); g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.15);
                 o.connect(g); g.connect(ctx.destination); o.start(now + i * 0.2); o.stop(now + i * 0.2 + 0.15);
             });
-            // وميض إضافي
-            const o2 = ctx.createOscillator(), g2 = ctx.createGain();
-            o2.type = 'sawtooth'; o2.frequency.setValueAtTime(1200, now + 0.6);
-            g2.gain.setValueAtTime(0.08, now + 0.6); g2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-            o2.connect(g2); g2.connect(ctx.destination); o2.start(now + 0.6); o2.stop(now + 0.8);
         },
         typing: (ctx, now) => {
             const o = ctx.createOscillator(), g = ctx.createGain();
@@ -379,36 +375,32 @@
         try {
             const ctx = getAudioContext();
             const now = ctx.currentTime;
-            // استخدم النغمة الخاصة بالحدث إذا كانت موجودة
-            if (eventSpecificTones[type]) {
-                eventSpecificTones[type](ctx, now);
-            } else if (type === 'call') {
-                // للنظام القديم أو المكالمات العامة، استخدم النغمة المختارة في الإعدادات
-                if (ringtonePatterns[currentRingtone]) {
-                    ringtonePatterns[currentRingtone](ctx, now);
-                } else {
-                    ringtonePatterns.default(ctx, now);
-                }
-            }
+            if (eventSpecificTones[type]) eventSpecificTones[type](ctx, now);
+            else if (type === 'call') ringtonePatterns[currentRingtone]?.(ctx, now) || ringtonePatterns.default(ctx, now);
         } catch(e) {}
     }
 
+    function startRinging(type) {
+        stopRinging();
+        playTone(type);
+        ringingInterval = setInterval(() => playTone(type), 3000);
+    }
+
+    function stopRinging() {
+        if (ringingInterval) { clearInterval(ringingInterval); ringingInterval = null; }
+    }
+
     function changeRingtone() {
-        const select = document.getElementById('ringtoneSelect');
-        currentRingtone = select.value;
+        currentRingtone = document.getElementById('ringtoneSelect').value;
         localStorage.setItem('selected_ringtone', currentRingtone);
-        showNotif('تم تغيير نغمة الرنين الافتراضية', '🎵');
+        showNotif('تم تغيير نغمة الرنين', '🎵');
     }
 
     function loadRingtoneSetting() {
         const saved = localStorage.getItem('selected_ringtone');
-        if (saved) {
-            currentRingtone = saved;
-            document.getElementById('ringtoneSelect').value = saved;
-        }
+        if (saved) { currentRingtone = saved; document.getElementById('ringtoneSelect').value = saved; }
     }
 
-    // ---------- تأثيرات بصرية وإشعارات ----------
     function triggerPulseEffect() {
         const app = document.getElementById('app');
         app.classList.add('notification-active');
@@ -417,31 +409,23 @@
 
     function sendBrowserNotification(title, body) {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
-        // تسجيل service worker إذا لم يكن موجوداً
-        if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        }
-        navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(title, {
-                body,
-                icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64',
-                tag: 'msg',
-                vibrate: [200, 100, 200],
-                requireInteraction: true
-            });
-        }).catch(() => {
-            // fallback
-            new Notification(title, { body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64', tag: 'msg', vibrate: [200,100,200] });
+        navigator.serviceWorker.ready.then(reg => reg.showNotification(title, {
+            body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64',
+            tag: 'msg', vibrate: [200,100,200], requireInteraction: true
+        })).catch(() => {
+            new Notification(title, { body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64' });
         });
     }
 
     function showNotif(msg, icon='🔔') {
-        const n=document.getElementById('notification'); n.innerHTML=icon+' '+msg; n.style.display='block';
-        setTimeout(()=>n.style.display='none',3000);
+        const n = document.getElementById('notification');
+        n.innerHTML = icon + ' ' + msg;
+        n.style.display = 'block';
+        setTimeout(() => n.style.display = 'none', 3000);
         if (icon === '📬' || icon === '📢') triggerPulseEffect();
     }
 
-    function scrollToBottom() { const c=document.getElementById('messagesContainer'); if(c) c.scrollTo({top:c.scrollHeight,behavior:'smooth'}); }
+    function scrollToBottom() { const c = document.getElementById('messagesContainer'); if(c) c.scrollTo({top:c.scrollHeight,behavior:'smooth'}); }
     function formatTime(d) {
         const date = new Date(d);
         return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')} ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -450,9 +434,9 @@
     function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
     function isDirector() { return currentUser?.id === DIRECTOR_ID; }
     function getActiveChatsKey() { return `active_chats_${currentUser.id}`; }
-    function getActiveChats() { const s=localStorage.getItem(getActiveChatsKey()); return s?JSON.parse(s):[]; }
+    function getActiveChats() { const s = localStorage.getItem(getActiveChatsKey()); return s ? JSON.parse(s) : []; }
     function saveActiveChats(chats) { localStorage.setItem(getActiveChatsKey(), JSON.stringify(chats)); }
-    function addToActiveChats(chatId) { const chats=getActiveChats(); if(!chats.includes(chatId)) { chats.push(chatId); saveActiveChats(chats); } }
+    function addToActiveChats(chatId) { const chats = getActiveChats(); if(!chats.includes(chatId)) { chats.push(chatId); saveActiveChats(chats); } }
 
     function incrementUnread(chatId, senderId) {
         if (activeChat && ((activeChat.id==='group' && chatId==='group') || (activeChat.id!=='group' && chatId===[currentUser.id, activeChat.id].sort().join('_'))) && senderId!==currentUser.id) return;
@@ -462,7 +446,7 @@
         if (document.getElementById('mainView').style.display !== 'none') renderChatsList();
         triggerPulseEffect();
         playTone(unreadCounts[chatId] > 3 ? 'urgent' : 'message');
-        sendBrowserNotification('📬 رسالة جديدة', 'لديك رسالة جديدة في التطبيق');
+        sendBrowserNotification('📬 رسالة جديدة', 'لديك رسالة جديدة');
     }
 
     function markChatAsRead(chatId) { if(unreadCounts[chatId]) { delete unreadCounts[chatId]; localStorage.setItem('unread_counts', JSON.stringify(unreadCounts)); renderChatsList(); } }
@@ -471,7 +455,7 @@
         if (empId === 'group') return 'https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100';
         const saved = localStorage.getItem(`avatar_${empId}`);
         if (saved) return saved;
-        const emp = allEmployees.find(e=>e.id===empId) || currentUser;
+        const emp = allEmployees.find(e => e.id === empId) || currentUser;
         if (emp) return `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=2c2c2e&color=fff&size=100`;
         return 'https://ui-avatars.com/api/?name=User&background=2c2c2e&color=fff&size=100';
     }
@@ -506,8 +490,8 @@
             try {
                 const { data: supData } = await supabaseClient.from('profiles').select('*');
                 if (supData) supData.forEach(e => {
-                    const idx = allEmployees.findIndex(emp=>emp.id===e.id);
-                    if (idx>=0) { if(e.avatar_url) localStorage.setItem(`avatar_${e.id}`, e.avatar_url); }
+                    const idx = allEmployees.findIndex(emp => emp.id === e.id);
+                    if (idx >= 0) { if(e.avatar_url) localStorage.setItem(`avatar_${e.id}`, e.avatar_url); }
                     else allEmployees.push(e);
                 });
             } catch(e) {}
@@ -520,62 +504,46 @@
         const q = document.getElementById('loginSearch').value.trim();
         const drop = document.getElementById('searchDropdown');
         if (!q) { drop.style.display='none'; return; }
-        const matches = allEmployees.filter(e=> e.name.includes(q));
-        drop.innerHTML = matches.length ? matches.map(e=>`<div class="dropdown-item" onclick="window.selectEmp('${e.id}')"><img src="${getAvatarUrl(e.id)}" style="width:35px;height:35px;border-radius:50%;margin-left:10px;"><div><strong>${e.name}</strong><br><small>${e.job}</small></div></div>`).join('') : '<div style="padding:12px;">لا يوجد تطابق</div>';
+        const matches = allEmployees.filter(e => e.name.includes(q));
+        drop.innerHTML = matches.length ? matches.map(e => `<div class="dropdown-item" onclick="window.selectEmp('${e.id}')"><img src="${getAvatarUrl(e.id)}" style="width:35px;height:35px;border-radius:50%;margin-left:10px;"><div><strong>${e.name}</strong><br><small>${e.job}</small></div></div>`).join('') : '<div style="padding:12px;">لا يوجد تطابق</div>';
         drop.style.display = 'block';
     };
     window.selectEmp = function(id) {
-        selectedLoginEmp = allEmployees.find(e=>e.id===id);
+        selectedLoginEmp = allEmployees.find(e => e.id === id);
         document.getElementById('selectedEmpName').innerText = selectedLoginEmp.name;
         document.getElementById('searchPhase').style.display = 'none';
         document.getElementById('credentialsPhase').style.display = 'block';
         document.getElementById('passInput').value = '';
         document.getElementById('searchDropdown').style.display = 'none';
     };
-    document.getElementById('verifyIdBtn').onclick = ()=>{
+    document.getElementById('verifyIdBtn').onclick = () => {
         if(document.getElementById('passInput').value === selectedLoginEmp.id) {
-            document.getElementById('credentialsPhase').style.display='none';
-            document.getElementById('passwordPhase').style.display='block';
+            document.getElementById('credentialsPhase').style.display = 'none';
+            document.getElementById('passwordPhase').style.display = 'block';
         } else alert('الرقم الوظيفي غير صحيح');
     };
-    document.getElementById('setPasswordBtn').onclick = ()=>{
+    document.getElementById('setPasswordBtn').onclick = () => {
         const pw = document.getElementById('newPassword').value, cpw = document.getElementById('confirmPassword').value;
-        if(pw.length<4) return alert('كلمة المرور قصيرة');
-        if(pw!==cpw) return alert('كلمة المرور غير متطابقة');
+        if(pw.length < 4) return alert('كلمة المرور قصيرة');
+        if(pw !== cpw) return alert('كلمة المرور غير متطابقة');
         currentUser = selectedLoginEmp;
         if(document.getElementById('rememberMeCheckbox').checked) setRememberedUser(currentUser.id, pw);
         else clearRememberedUser();
         startApp();
     };
-    document.getElementById('backToSearch1').onclick = ()=>{ document.getElementById('credentialsPhase').style.display='none'; document.getElementById('searchPhase').style.display='block'; };
-    document.getElementById('backToSearch2').onclick = ()=>{ document.getElementById('passwordPhase').style.display='none'; document.getElementById('searchPhase').style.display='block'; };
+    document.getElementById('backToSearch1').onclick = () => { document.getElementById('credentialsPhase').style.display = 'none'; document.getElementById('searchPhase').style.display = 'block'; };
+    document.getElementById('backToSearch2').onclick = () => { document.getElementById('passwordPhase').style.display = 'none'; document.getElementById('searchPhase').style.display = 'block'; };
 
     function checkAutoLogin() {
         const remembered = getRememberedUser();
-        if (remembered) { const emp = allEmployees.find(e=>e.id===remembered.userId); if (emp) { currentUser = emp; startApp(); } }
-    }
-
-    // تسجيل Service Worker للعمل في الخلفية
-    async function registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            try {
-                const registration = await navigator.serviceWorker.register('sw.js');
-                console.log('Service Worker مسجل بنجاح');
-                // طلب إذن الإشعارات
-                if (Notification.permission === 'default') {
-                    Notification.requestPermission();
-                }
-            } catch (error) {
-                console.log('فشل تسجيل Service Worker:', error);
-            }
-        }
+        if (remembered) { const emp = allEmployees.find(e => e.id === remembered.userId); if (emp) { currentUser = emp; startApp(); } }
     }
 
     async function startApp() {
-        document.getElementById('loginScreen').style.display='none';
-        document.getElementById('app').style.display='flex';
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
         loadRingtoneSetting();
-        await registerServiceWorker(); // تسجيل SW للخلفية
+        registerSW();
         await initChannels(); initPresence(); initSignaling(); initPostsRealtime();
         renderStories(); renderChatsList();
         showNotif(`👋 أهلاً ${currentUser.name}`);
@@ -600,7 +568,7 @@
         const groupUnread = unreadCounts['group'] || 0;
         let lastGroupMsg = '';
         try { const { data } = await supabaseClient.from('messages').select('text').eq('chat_id','group').order('created_at',{ascending:false}).limit(1); if (data?.length) lastGroupMsg = data[0].text.replace(/<[^>]*>/g,'').substring(0,40); } catch(e) {}
-        let html = `<div class="chat-row" onclick="openChat('group','المجموعة العامة')"><div style="position:relative"><img src="${getAvatarUrl('group')}" style="width:50px;height:50px;border-radius:50%;">${groupUnread>0?`<div class="unread-badge">${groupUnread}</div>`:''}</div><div class="chat-info"><h5>المجموعة العامة 📢</h5><p>${lastGroupMsg?escapeHtml(lastGroupMsg):'تواصل مع جميع الموظفين'}</p></div></div>`;
+        let html = `<div class="chat-row" onclick="openChat('group','المجموعة العامة')"><div style="position:relative"><img src="${getAvatarUrl('group')}" style="width:50px;height:50px;border-radius:50%;">${groupUnread>0?`<div class="unread-badge">${groupUnread}</div>`:''}</div><div class="chat-info"><h5>المجموعة العامة 📢</h5><p>${lastGroupMsg?escapeHtml(lastGroupMsg):'تواصل مع الجميع'}</p></div></div>`;
         for (const chatId of activeList) {
             if (chatId === 'group') continue;
             const ids = chatId.split('_'); const other = ids.find(id => id !== currentUser.id); if (!other) continue;
@@ -657,14 +625,14 @@
                 pendingOffer = payload.sdp; pendingFrom = payload.from; pendingType = payload.type;
                 const caller = allEmployees.find(e => e.id === payload.from);
                 if (caller) {
-                    // تشغيل النغمة المناسبة حسب نوع المكالمة
-                    playTone(payload.type === 'video' ? 'video_call' : 'audio_call');
+                    startRinging(payload.type === 'video' ? 'video_call' : 'audio_call');
                     showIncomingCall(caller.name, payload.type, payload.from);
                 }
             }
         })
         .on('broadcast', { event: 'answer' }, async ({ payload }) => {
             if (payload.target === currentUser.id && peerConnection) {
+                stopRinging();
                 try {
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.sdp));
                     pendingSignalingCandidates.forEach(c => peerConnection.addIceCandidate(new RTCIceCandidate(c)));
@@ -681,6 +649,7 @@
             }
         })
         .on('broadcast', { event: 'end' }, () => {
+            stopRinging();
             if (isCallActive) hangUp(false);
             document.getElementById('incomingCall').style.display = 'none';
         }).subscribe();
@@ -691,22 +660,9 @@
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: currentCallType === 'video' ? { width: {ideal:640}, height: {ideal:480} } : false });
             return stream;
         } catch (err) {
-            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') showNotif('يرجى السماح بالوصول للكاميرا والميكروفون', '🔒');
-            else if (err.name === 'NotFoundError') showNotif('لم يتم العثور على كاميرا أو ميكروفون', '📷');
+            if (err.name === 'NotAllowedError') showNotif('يرجى السماح للكاميرا والميكروفون', '🔒');
             else showNotif('تعذر الوصول للكاميرا/الميكروفون', '❌');
             throw err;
-        }
-    }
-
-    async function testMediaDevices() {
-        try {
-            const testStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            testStream.getTracks().forEach(t => t.stop());
-            showNotif('الكاميرا والميكروفون يعملان', '✅');
-            return true;
-        } catch (e) {
-            showNotif('فشل اختبار الأجهزة: ' + e.message, '❌');
-            return false;
         }
     }
 
@@ -714,8 +670,6 @@
         try {
             if (peerConnection) { peerConnection.close(); peerConnection = null; }
             if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-            const ok = await testMediaDevices();
-            if (!ok) return;
             localStream = await requestMediaPermissions();
             document.getElementById('localVideo').srcObject = localStream;
             document.getElementById('callOverlay').style.display = 'flex';
@@ -729,6 +683,7 @@
                 if (event.streams && event.streams[0]) {
                     document.getElementById('remoteVideo').srcObject = event.streams[0];
                     document.getElementById('callStatus').innerHTML = '✅ متصل';
+                    stopRinging();
                     callStartTime = Date.now();
                 }
             };
@@ -750,13 +705,12 @@
                 await peerConnection.setLocalDescription(answer);
                 signalingChannel.send({ type: 'broadcast', event: 'answer', payload: { sdp: peerConnection.localDescription, from: currentUser.id, target: targetUser.id } });
                 callStartTime = Date.now();
+                stopRinging();
             } else {
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
-                // إرسال نوع المكالمة (audio/video) في العرض
                 signalingChannel.send({ type: 'broadcast', event: 'offer', payload: { sdp: peerConnection.localDescription, from: currentUser.id, target: targetUser.id, type: currentCallType } });
-                // تشغيل نغمة الرنين المناسبة لنوع المكالمة
-                playTone(currentCallType === 'video' ? 'video_call' : 'audio_call');
+                startRinging(currentCallType === 'video' ? 'video_call' : 'audio_call');
                 callStartTime = Date.now();
             }
         } catch (err) { hangUp(true); }
@@ -772,6 +726,7 @@
     };
 
     window.hangUp = function(sendSignal=true) {
+        stopRinging();
         if(peerConnection) { peerConnection.close(); peerConnection = null; }
         if(localStream) { localStream.getTracks().forEach(t=>t.stop()); localStream = null; }
         if(isCallActive && callStartTime && targetUser) addCallLog(currentUser.id, targetUser.id, currentCallType, true, Math.floor((Date.now()-callStartTime)/1000));
@@ -794,8 +749,8 @@
             <button id="rejectCallBtn" style="background:#f44336;color:white;border:none;border-radius:20px;padding:10px 20px;">رفض</button></div>`;
         div.style.display = 'block';
         document.getElementById('acceptCallBtn').onclick = async ()=>{ div.style.display='none'; targetUser = allEmployees.find(e=>e.id===fromId); currentCallType=type; isCallActive=true; pendingSignalingCandidates = []; await setupCall(true); };
-        document.getElementById('rejectCallBtn').onclick = ()=>{ div.style.display='none'; addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); };
-        setTimeout(()=>{ if(div.style.display==='block') { div.style.display='none'; addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); } }, 30000);
+        document.getElementById('rejectCallBtn').onclick = ()=>{ div.style.display='none'; stopRinging(); addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); };
+        setTimeout(()=>{ if(div.style.display==='block') { div.style.display='none'; stopRinging(); addCallLog(fromId, currentUser.id, type, false, 0); signalingChannel.send({ type:'broadcast', event:'end', payload:{ target:fromId } }); } }, 30000);
     }
     document.getElementById('callAudioBtn').onclick = ()=> startCall('audio');
     document.getElementById('callVideoBtn').onclick = ()=> startCall('video');
@@ -816,14 +771,6 @@
         showNotif('تم حذف السجل', '🗑️');
     }
 
-    function deleteAllMyCallLogs() {
-        if (!currentUser) return;
-        if (!confirm('هل تريد حذف جميع سجلات مكالماتك؟')) return;
-        localStorage.removeItem(`call_logs_${currentUser.id}`);
-        renderCallsLog();
-        showNotif('تم حذف جميع السجلات', '🗑️');
-    }
-
     function deleteAllCallLogs() {
         if (!isDirector()) return;
         if (!confirm('حذف جميع سجلات المكالمات لجميع الموظفين؟')) return;
@@ -837,8 +784,7 @@
         if(!currentUser) return;
         const logs = JSON.parse(localStorage.getItem(`call_logs_${currentUser.id}`)||'[]');
         const c = document.getElementById('callsList');
-        const deleteAllBtn = document.getElementById('deleteAllCallsBtn');
-        deleteAllBtn.style.display = isDirector() ? 'inline-block' : 'none';
+        document.getElementById('deleteAllCallsBtn').style.display = isDirector() ? 'inline-block' : 'none';
         if(!logs.length) { c.innerHTML='<div style="text-align:center;padding:40px;">لا توجد مكالمات</div>'; return; }
         c.innerHTML = logs.map(log=>{
             const pid = log.caller_id===currentUser.id ? log.callee_id : log.caller_id;
@@ -858,7 +804,7 @@
     window.startCallWithUser = (userId, type) => { const p = allEmployees.find(e=>e.id===userId); if(p) openChat(userId, p.name); setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500); };
     function formatDuration(s) { const m=Math.floor(s/60), sec=s%60; return m?`${m}د ${sec}ث`:`${sec}ث`; }
 
-    // المنشورات
+    // ---------- المنشورات (مع حذف) ----------
     async function initPostsRealtime() {
         try {
             if (postsChannel) supabaseClient.removeChannel(postsChannel);
@@ -931,6 +877,7 @@
     }
     async function deletePost(postId) { if (!confirm('حذف المنشور؟')) return; await supabaseClient.from('posts').delete().eq('id', postId); renderPosts(); }
 
+    // ---------- الدردشة ----------
     window.openChat = async (id, name) => {
         activeChat = { id, name };
         currentChatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
@@ -1039,18 +986,19 @@
     document.getElementById('logoutBtn').onclick = ()=>{ clearRememberedUser(); logout(); };
 
     function logout() {
+        stopRinging();
         [messagesChannel, typingChannel, presenceChannel, signalingChannel, postsChannel, likesChannel].forEach(ch => { if(ch) supabaseClient.removeChannel(ch); });
         if (peerConnection) { peerConnection.close(); peerConnection = null; }
         if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
         currentUser = null; onlineUsers.clear();
-        document.getElementById('app').style.display='none';
-        document.getElementById('loginScreen').style.display='block';
-        document.getElementById('searchPhase').style.display='block';
-        document.getElementById('credentialsPhase').style.display='none';
-        document.getElementById('passwordPhase').style.display='none';
-        document.getElementById('loginSearch').value='';
-        document.getElementById('settingsModal').style.display='none';
-        document.getElementById('adminPanel').style.display='none';
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('searchPhase').style.display = 'block';
+        document.getElementById('credentialsPhase').style.display = 'none';
+        document.getElementById('passwordPhase').style.display = 'none';
+        document.getElementById('loginSearch').value = '';
+        document.getElementById('settingsModal').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'none';
         document.getElementById('callOverlay').style.display = 'none';
         document.getElementById('incomingCall').style.display = 'none';
     }
