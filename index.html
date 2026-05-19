@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Messenger Pro - المؤسسة</title>
+    <title>Messenger Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=192">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Messenger Pro">
+    <link rel="apple-touch-icon" href="https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=192">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0084ff">
     <style>
         :root {
             --sky-bg: #f0f2f5;
@@ -104,9 +111,11 @@
         .delete-call-btn { background:none; border:none; color:#d32f2f; cursor:pointer; font-size:16px; margin-right:10px; }
         .delete-all-btn { background:#d32f2f; color:white; border:none; border-radius:20px; padding:8px 16px; margin:10px 0; cursor:pointer; font-weight:bold; }
         select.ringtone-select { width:100%; padding:8px; border-radius:12px; border:1px solid #ddd; margin:5px 0; }
+        .install-btn { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--primary); color:white; border:none; border-radius:30px; padding:12px 24px; font-weight:bold; cursor:pointer; z-index:5000; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
+<button id="installBtn" class="install-btn"><i class="fas fa-download"></i> تثبيت التطبيق</button>
 
 <div id="loginScreen" class="login-screen">
     <h1 style="color:var(--primary);">Messenger Pro</h1>
@@ -261,18 +270,39 @@
     let audioContext = null;
     let currentRingtone = 'default';
     let ringingInterval = null;
+    let deferredPrompt = null;
 
+    // ---------- PWA ----------
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installBtn').style.display = 'block';
+    });
+    document.getElementById('installBtn').addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') showNotif('تم تثبيت التطبيق!', '✅');
+        deferredPrompt = null;
+        document.getElementById('installBtn').style.display = 'none';
+    });
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        document.getElementById('installBtn').style.display = 'none';
+        showNotif('تم تثبيت التطبيق بنجاح', '🎉');
+    });
+
+    // ---------- helper functions ----------
     function getRememberedUser() { const d = localStorage.getItem('remembered_user'); return d ? JSON.parse(d) : null; }
     function setRememberedUser(userId, password) { localStorage.setItem('remembered_user', JSON.stringify({userId, password, timestamp: Date.now()})); }
     function clearRememberedUser() { localStorage.removeItem('remembered_user'); }
-
     function getAudioContext() {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === 'suspended') audioContext.resume();
         return audioContext;
     }
 
-    // ========== نغمات بصوت عالٍ ==========
+    // ========== RINGTONES ==========
     const ringtonePatterns = {
         default: (ctx, now) => {
             const playRing = (d) => {
@@ -363,13 +393,12 @@
         playTone(type);
         ringingInterval = setInterval(() => playTone(type), 4000);
     }
-
     function stopRinging() { if (ringingInterval) { clearInterval(ringingInterval); ringingInterval = null; } }
     function changeRingtone() { currentRingtone = document.getElementById('ringtoneSelect').value; localStorage.setItem('selected_ringtone', currentRingtone); showNotif('تم تغيير نغمة الرنين', '🎵'); }
     function loadRingtoneSetting() { const saved = localStorage.getItem('selected_ringtone'); if (saved) { currentRingtone = saved; document.getElementById('ringtoneSelect').value = saved; } }
 
     function triggerPulseEffect() { const app = document.getElementById('app'); app.classList.add('notification-active'); setTimeout(() => app.classList.remove('notification-active'), 4000); }
-    function sendBrowserNotification(title, body) { if (!('Notification' in window) || Notification.permission !== 'granted') return; new Notification(title, { body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64', tag: 'msg', vibrate: [200,100,200] }); }
+    function sendBrowserNotification(title, body) { if (!('Notification' in window) || Notification.permission !== 'granted') return; navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body, icon: 'https://ui-avatars.com/api/?name=MP&background=0084ff&color=fff&size=64', tag: 'msg', vibrate: [200,100,200] })); }
     function showNotif(msg, icon='🔔') { const n = document.getElementById('notification'); n.innerHTML = icon + ' ' + msg; n.style.display = 'block'; setTimeout(() => n.style.display = 'none', 3000); if (icon === '📬' || icon === '📢') triggerPulseEffect(); }
 
     function scrollToBottom() { const c = document.getElementById('messagesContainer'); if(c) c.scrollTo({top:c.scrollHeight,behavior:'smooth'}); }
@@ -487,6 +516,9 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         loadRingtoneSetting();
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
         await initChannels(); initPresence(); initSignaling(); initPostsRealtime();
         renderStories(); renderChatsList();
         showNotif(`👋 أهلاً ${currentUser.name}`);
@@ -627,10 +659,8 @@
             document.getElementById('callOverlay').style.display = 'flex';
             if (targetUser) document.getElementById('callPartnerName').innerText = targetUser.name;
             document.getElementById('callStatus').innerHTML = '🔗 جاري الاتصال...';
-
             peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
             peerConnection.ontrack = (event) => {
                 if (event.streams && event.streams[0]) {
                     document.getElementById('remoteVideo').srcObject = event.streams[0];
@@ -650,7 +680,6 @@
                     hangUp(true);
                 }
             };
-
             if (isAnswer && pendingOffer) {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer));
                 const answer = await peerConnection.createAnswer();
@@ -667,7 +696,7 @@
             }
         } catch (err) {
             hangUp(true);
-            showNotif('فشل إعداد المكالمة: ' + err.message, '❌');
+            showNotif('فشل إعداد المكالمة', '❌');
         }
     }
 
@@ -759,7 +788,7 @@
     window.startCallWithUser = (userId, type) => { const p = allEmployees.find(e=>e.id===userId); if(p) openChat(userId, p.name); setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500); };
     function formatDuration(s) { const m=Math.floor(s/60), sec=s%60; return m?`${m}د ${sec}ث`:`${sec}ث`; }
 
-    // ========== المنشورات ==========
+    // ---------- Posts ----------
     async function initPostsRealtime() {
         try {
             if (postsChannel) supabaseClient.removeChannel(postsChannel);
@@ -840,7 +869,7 @@
         else { showNotif('تم حذف المنشور', '🗑️'); renderPosts(); }
     }
 
-    // ========== الدردشة ==========
+    // ---------- Chat ----------
     window.openChat = async (id, name) => {
         activeChat = { id, name };
         currentChatId = id==='group'?'group':[currentUser.id, id].sort().join('_');
@@ -993,4 +1022,4 @@
     loadEmployees();
 </script>
 </body>
-</html>      
+</html>
