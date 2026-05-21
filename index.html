@@ -265,7 +265,8 @@
         { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
         { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
         { urls: 'turn:relay1.expressturn.com:3478', username: 'efx', credential: 'efx' },
-        { urls: 'turn:relay1.expressturn.com:3478?transport=tcp', username: 'efx', credential: 'efx' }
+        { urls: 'turn:relay1.expressturn.com:3478?transport=tcp', username: 'efx', credential: 'efx' },
+        { urls: 'turns:relay1.expressturn.com:5349', username: 'efx', credential: 'efx' }
     ];
 
     let allEmployees = [];
@@ -678,16 +679,26 @@
 
     async function requestMediaPermissions() {
         try {
+            // طلب الصلاحيات مع إعدادات محسنة للجوال
             const constraints = {
-                audio: true,
-                video: currentCallType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } : false
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                },
+                video: currentCallType === 'video' ? {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: 'user',
+                    frameRate: { ideal: 30 }
+                } : false
             };
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
             return stream;
         } catch (err) {
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                 showNotif('يرجى السماح للكاميرا والميكروفون من إعدادات المتصفح', '🔒');
-            } else if (err.name === 'NotFoundError') {
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
                 showNotif('لم يتم العثور على كاميرا أو ميكروفون', '📷');
             } else {
                 showNotif('تعذر الوصول للكاميرا/الميكروفون: ' + err.message, '❌');
@@ -705,12 +716,17 @@
             document.getElementById('callOverlay').style.display = 'flex';
             if (targetUser) document.getElementById('callPartnerName').innerText = targetUser.name;
             document.getElementById('callStatus').innerHTML = '🔗 جاري الاتصال...';
+            
             peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            
             peerConnection.ontrack = (event) => {
                 if (event.streams && event.streams[0]) {
-                    document.getElementById('remoteVideo').srcObject = event.streams[0];
+                    const remoteVideo = document.getElementById('remoteVideo');
+                    remoteVideo.srcObject = event.streams[0];
                     document.getElementById('callStatus').innerHTML = '✅ متصل';
+                    // تشغيل الفيديو تلقائياً (مهم للجوال)
+                    remoteVideo.play().catch(e => console.log('تشغيل الفيديو:', e));
                     stopRinging();
                     callStartTime = Date.now();
                 }
@@ -721,11 +737,26 @@
                 }
             };
             peerConnection.oniceconnectionstatechange = () => {
+                console.log('ICE state:', peerConnection?.iceConnectionState);
                 if (peerConnection && (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed')) {
-                    showNotif('انقطع الاتصال', '📞');
-                    hangUp(true);
+                    showNotif('انقطع الاتصال - جاري إعادة المحاولة...', '📞');
+                    // محاولة إعادة الاتصال
+                    if (peerConnection.iceConnectionState === 'failed') {
+                        peerConnection.restartIce();
+                    }
+                }
+                if (peerConnection && peerConnection.iceConnectionState === 'connected') {
+                    document.getElementById('callStatus').innerHTML = '✅ متصل';
                 }
             };
+            // معالجة تغيير المسار الصوتي
+            peerConnection.onconnectionstatechange = () => {
+                console.log('Connection state:', peerConnection?.connectionState);
+                if (peerConnection && peerConnection.connectionState === 'connected') {
+                    document.getElementById('callStatus').innerHTML = '✅ متصل';
+                }
+            };
+            
             if (isAnswer && pendingOffer) {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer));
                 const answer = await peerConnection.createAnswer();
@@ -741,8 +772,9 @@
                 callStartTime = Date.now();
             }
         } catch (err) {
+            console.error('خطأ في المكالمة:', err);
             hangUp(true);
-            showNotif('فشل إعداد المكالمة', '❌');
+            showNotif('فشل إعداد المكالمة: ' + (err.message || 'خطأ غير معروف'), '❌');
         }
     }
 
@@ -751,6 +783,16 @@
         targetUser = allEmployees.find(e=>e.id===activeChat.id);
         if(!targetUser) return;
         if (location.protocol !== 'https:' && location.hostname !== 'localhost') return showNotif('الكاميرا تحتاج HTTPS','🔒');
+        
+        // اختبار سريع للوسائط قبل المكالمة
+        try {
+            const testStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            testStream.getTracks().forEach(t => t.stop());
+        } catch(e) {
+            showNotif('تعذر الوصول للكاميرا/الميكروفون. تأكد من الصلاحيات.', '❌');
+            return;
+        }
+        
         currentCallType = type; isCallActive = true; callStartTime = null; pendingSignalingCandidates = [];
         await setupCall(false);
     };
@@ -834,7 +876,18 @@
     window.startCallWithUser = (userId, type) => { const p = allEmployees.find(e=>e.id===userId); if(p) openChat(userId, p.name); setTimeout(()=>{ if(type==='audio') startCall('audio'); else startCall('video'); }, 500); };
     function formatDuration(s) { const m=Math.floor(s/60), sec=s%60; return m?`${m}د ${sec}ث`:`${sec}ث`; }
 
-    // ---------- المنشورات ----------
+    // ---------- المنشورات (مع إخفاء) ----------
+    function hidePost(postId) {
+        if (!currentUser || isDirector()) return;
+        let hidden = JSON.parse(localStorage.getItem('hidden_posts_' + currentUser.id) || '[]');
+        if (!hidden.includes(postId)) {
+            hidden.push(postId);
+            localStorage.setItem('hidden_posts_' + currentUser.id, JSON.stringify(hidden));
+            renderPosts();
+            showNotif('تم إخفاء المنشور', '👁️');
+        }
+    }
+
     async function initPostsRealtime() {
         try {
             if (postsChannel) supabaseClient.removeChannel(postsChannel);
@@ -860,14 +913,21 @@
             let likesData = { data: [] };
             try { likesData = await supabaseClient.from('post_likes').select('post_id, user_id'); } catch(e) {}
             const userLikes = new Set((likesData.data||[]).filter(l=>l.user_id===currentUser.id).map(l=>l.post_id));
+            const hiddenPosts = JSON.parse(localStorage.getItem('hidden_posts_' + currentUser.id) || '[]');
             let html = '';
             for (const post of posts) {
+                // تخطي المنشورات المخفية (إلا للمدير)
+                if (!isDirector() && hiddenPosts.includes(post.id)) continue;
+                
                 const user = allEmployees.find(e => e.id === post.user_id) || { name: 'مستخدم', id: post.user_id };
                 const likeCount = (likesData.data || []).filter(l => l.post_id === post.id).length;
                 const isLiked = userLikes.has(post.id);
                 const canDelete = (post.user_id === currentUser.id) || isDirector();
                 const deleteBtn = canDelete ? `<span onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</span>` : '';
-                html += `<div class="post-card"><div class="post-header"><img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')"><div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div></div><div class="post-body">${escapeHtml(post.text||'')}</div>${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}<div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i> <span class="like-count" data-post-id="${post.id}">${likeCount}</span></span><span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${deleteBtn}</div></div>`;
+                const hideBtn = (!isDirector() && !(post.user_id === currentUser.id)) 
+                    ? `<span onclick="hidePost('${post.id}')"><i class="fas fa-eye-slash"></i> إخفاء</span>` 
+                    : '';
+                html += `<div class="post-card"><div class="post-header"><img src="${getAvatarUrl(post.user_id)}" class="post-avatar" onclick="openChat('${post.user_id}','${escapeHtml(user.name)}')"><div><strong>${escapeHtml(user.name)}</strong><div class="post-time">${formatTimeAgo(post.created_at)}</div></div></div><div class="post-body">${escapeHtml(post.text||'')}</div>${post.image_url ? `<img src="${post.image_url}" class="post-image" onclick="window.open('${post.image_url}')">` : ''}<div class="post-actions"><span onclick="toggleLike('${post.id}')"><i class="fas fa-heart ${isLiked?'liked':''}" id="heart-${post.id}"></i> <span class="like-count" data-post-id="${post.id}">${likeCount}</span></span><span onclick="sharePost('${post.id}')"><i class="fas fa-share"></i> مشاركة</span>${hideBtn}${deleteBtn}</div></div>`;
             }
             document.getElementById('postsList').innerHTML = html;
         } catch (e) { document.getElementById('postsList').innerHTML = '<div style="text-align:center;padding:20px;color:red;">تعذر تحميل المنشورات.</div>'; }
