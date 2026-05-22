@@ -46,6 +46,7 @@
             overflow: hidden;
         }
 
+        /* Login Screen */
         .login-screen {
             background: var(--card);
             border-radius: 20px;
@@ -105,6 +106,7 @@
             border-bottom: 1px solid var(--border);
         }
 
+        /* Main App */
         #app {
             display: none;
             width: 100%;
@@ -116,6 +118,7 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
+        /* Header */
         .messenger-header {
             background: var(--card);
             padding: 12px 16px;
@@ -137,6 +140,7 @@
             color: var(--text-secondary);
         }
 
+        /* Stories Row - المتصلين في الأعلى */
         .stories-row {
             display: flex;
             gap: 12px;
@@ -174,6 +178,7 @@
             margin-right: 40px;
         }
 
+        /* Feed Container */
         .feed-container {
             flex: 1;
             overflow-y: auto;
@@ -183,6 +188,7 @@
             gap: 12px;
         }
 
+        /* Create Post Box */
         .create-post-card {
             background: var(--card);
             border-radius: 16px;
@@ -235,6 +241,7 @@
             font-size: 14px;
         }
 
+        /* Post Card */
         .post-card {
             background: var(--card);
             border-radius: 16px;
@@ -303,6 +310,7 @@
             color: var(--like);
         }
 
+        /* Chat Card */
         .chat-card {
             background: var(--card);
             border-radius: 16px;
@@ -343,6 +351,7 @@
             font-weight: bold;
         }
 
+        /* Chat Screen */
         .chat-screen {
             position: absolute;
             top: 0;
@@ -420,6 +429,73 @@
             color: var(--text);
         }
 
+        /* Bottom Navigation - أيقونات الأسفل */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 16px;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 12px;
+            transition: 0.2s;
+            padding: 4px 16px;
+            border-radius: 20px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(0, 132, 255, 0.1);
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        /* Calls Screen */
+        .calls-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: var(--bg);
+        }
+
+        .calls-header {
+            background: var(--card);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .calls-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .call-item {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        /* Modal & Notifications */
         .modal {
             position: fixed;
             top: 50%;
@@ -437,7 +513,7 @@
 
         .notification {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             background: #333;
@@ -447,6 +523,20 @@
             font-size: 14px;
             z-index: 3000;
             display: none;
+        }
+
+        .call-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border-radius: 24px;
+            padding: 20px;
+            z-index: 1500;
+            display: none;
+            text-align: center;
+            width: 280px;
         }
     </style>
 </head>
@@ -484,8 +574,34 @@
             <i class="fas fa-sign-out-alt" id="logoutIcon" style="color:var(--danger); cursor:pointer;"></i>
         </div>
     </div>
+    
     <div class="stories-row" id="storiesContainer"></div>
-    <div class="feed-container" id="feedContainer"></div>
+    
+    <!-- المحتوى الرئيسي (يتغير حسب التبويب) -->
+    <div id="feedContainer" class="feed-container" style="display:flex;"></div>
+    <div id="callsContainer" class="calls-screen" style="display:none;">
+        <div class="calls-header">
+            <i class="fas fa-phone-alt" style="color:var(--primary); font-size:20px;"></i>
+            <h3 style="color:var(--text);">سجل المكالمات</h3>
+        </div>
+        <div class="calls-list" id="callsList"></div>
+    </div>
+    
+    <!-- أيقونات الأسفل -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-tab="chats">
+            <i class="fas fa-comment-dots"></i>
+            <span>الدردشات</span>
+        </div>
+        <div class="nav-item" data-tab="posts">
+            <i class="fas fa-newspaper"></i>
+            <span>المنشورات</span>
+        </div>
+        <div class="nav-item" data-tab="calls">
+            <i class="fas fa-phone-alt"></i>
+            <span>المكالمات</span>
+        </div>
+    </div>
 </div>
 
 <div id="chatScreen" class="chat-screen">
@@ -513,16 +629,18 @@
 </div>
 
 <div id="notification" class="notification"></div>
+<div id="callNotification" class="call-notification"></div>
 
 <script>
 (function(){
-    // متغيرات عامة
+    // بيانات الموظفين
     let allEmployees = [];
     let currentUser = null;
     let activeChat = null;
     let currentChatId = null;
     let unreadCounts = JSON.parse(localStorage.getItem('unread_counts') || '{}');
     let onlineUsers = new Set();
+    let currentTab = 'chats';
     
     // دوال مساعدة
     function showNotif(msg, icon='🔔') {
@@ -531,12 +649,12 @@
         n.style.display = 'block';
         setTimeout(() => n.style.display = 'none', 2500);
     }
-
+    
     function escapeHtml(str) { 
         if(!str) return '';
         return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
     }
-
+    
     function getAvatar(id) {
         const saved = localStorage.getItem(`avatar_${id}`);
         if (saved) return saved;
@@ -544,7 +662,7 @@
         const name = emp ? emp.name : 'User';
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0084ff&color=fff&size=100`;
     }
-
+    
     function getActiveChatsKey() { return `active_chats_${currentUser?.id}`; }
     function getActiveChats() { 
         if(!currentUser) return [];
@@ -557,15 +675,21 @@
             localStorage.setItem(getActiveChatsKey(), JSON.stringify(active));
         }
     }
-
-    // دوال الرسائل
+    
+    // دوال الرسائل (مشتركة بين جميع المستخدمين)
+    function getAllMessages() {
+        return JSON.parse(localStorage.getItem('all_messages') || '{}');
+    }
     function getMessages(chatId) {
-        const key = `messages_${chatId}`;
-        return JSON.parse(localStorage.getItem(key) || '[]');
+        const all = getAllMessages();
+        return all[chatId] || [];
     }
     function saveMessages(chatId, msgs) {
-        const key = `messages_${chatId}`;
-        localStorage.setItem(key, JSON.stringify(msgs));
+        const all = getAllMessages();
+        all[chatId] = msgs;
+        localStorage.setItem('all_messages', JSON.stringify(all));
+        // إشعار لجميع المستخدمين الآخرين (محاكاة الـ realtime)
+        triggerRealtimeUpdate(chatId);
     }
     function addMessage(chatId, senderId, text) {
         const msgs = getMessages(chatId);
@@ -578,33 +702,42 @@
         };
         msgs.push(newMsg);
         saveMessages(chatId, msgs);
-        
-        // إشعار للمتلقي (محاكاة)
-        if(chatId !== 'group' && senderId !== currentUser?.id) {
-            setTimeout(() => {
-                const otherId = chatId.split('_').find(id => id != senderId);
-                if(otherId && otherId != currentUser?.id) {
-                    addToActiveChats(chatId);
-                    const oldUnread = unreadCounts[chatId] || 0;
-                    unreadCounts[chatId] = oldUnread + 1;
-                    localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
-                    if(currentUser && currentUser.id == otherId) {
-                        renderUnifiedFeed();
-                        showNotif('📩 رسالة جديدة من ' + (allEmployees.find(e=>e.id==senderId)?.name || 'مستخدم'), '💬');
-                    }
-                }
-            }, 100);
-        }
         return newMsg;
     }
-
-    // عرض التايم لاين الموحد
-    function renderUnifiedFeed() {
+    
+    // تحديث فوري لجميع المستخدمين (محاكاة)
+    function triggerRealtimeUpdate(chatId) {
+        // تخزين وقت آخر تحديث
+        localStorage.setItem('last_update_' + chatId, Date.now());
+        // إذا كان هناك مستخدم آخر نشط، نقوم بتحديث واجهته
+        if(currentUser) {
+            // تحديث المحادثة الحالية إذا كانت مفتوحة
+            if(currentChatId === chatId) {
+                renderMessages();
+            }
+            // تحديث التايم لاين
+            if(currentTab === 'chats') renderChatsList();
+        }
+    }
+    
+    // التحقق من التحديثات (polling بسيط)
+    function startPolling() {
+        setInterval(() => {
+            if(currentUser && currentChatId) {
+                renderMessages();
+            }
+            if(currentUser && currentTab === 'chats') {
+                renderChatsList();
+            }
+        }, 2000);
+    }
+    
+    // عرض قائمة الدردشات
+    function renderChatsList() {
         if(!currentUser) return;
         const container = document.getElementById('feedContainer');
-        container.innerHTML = '<div style="text-align:center;padding:20px;">⏳ جاري التحميل...</div>';
+        if(!container) return;
         
-        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
         const activeChatsIds = getActiveChats();
         const otherUserIds = activeChatsIds.map(chatId => {
             const ids = chatId.split('_');
@@ -615,12 +748,59 @@
         
         let html = '';
         
-        // صندوق إنشاء منشور
+        // إضافة المجموعة العامة
+        const groupMsgs = getMessages('group');
+        const groupLastMsg = groupMsgs.length > 0 ? groupMsgs[groupMsgs.length-1].text : 'مرحباً بالجميع';
+        const groupUnread = unreadCounts['group'] || 0;
         html += `
+            <div class="chat-card" onclick="openChat('group', 'المجموعة العامة')">
+                <img src="https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100" class="chat-avatar">
+                <div class="chat-details">
+                    <div class="chat-name">المجموعة العامة</div>
+                    <div class="chat-preview">${escapeHtml(groupLastMsg.substring(0, 40))}</div>
+                </div>
+                ${groupUnread ? `<div class="unread-badge">${groupUnread}</div>` : ''}
+            </div>
+        `;
+        
+        // المحادثات الخاصة
+        for(const user of chatUsers) {
+            const chatId = [currentUser.id, user.id].sort().join('_');
+            const msgs = getMessages(chatId);
+            const lastMsg = msgs.length > 0 ? msgs[msgs.length-1].text : 'ابدأ المحادثة';
+            const unread = unreadCounts[chatId] || 0;
+            html += `
+                <div class="chat-card" onclick="openChat('${user.id}','${escapeHtml(user.name)}')">
+                    <img src="${getAvatar(user.id)}" class="chat-avatar">
+                    <div class="chat-details">
+                        <div class="chat-name">${escapeHtml(user.name)} ${onlineUsers.has(user.id) ? '🟢' : '⚫'}</div>
+                        <div class="chat-preview">${escapeHtml(lastMsg.substring(0, 40))}</div>
+                    </div>
+                    ${unread ? `<div class="unread-badge">${unread}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        if(chatUsers.length === 0) {
+            html += `<div style="background:var(--card); border-radius:16px; padding:20px; text-align:center; color:var(--text-secondary);">لا توجد محادثات بعد. ابدأ محادثة جديدة من قائمة المتصلين في الأعلى</div>`;
+        }
+        
+        container.innerHTML = html;
+    }
+    
+    // عرض المنشورات (يراها الجميع)
+    function renderPosts() {
+        if(!currentUser) return;
+        const container = document.getElementById('feedContainer');
+        if(!container) return;
+        
+        const posts = JSON.parse(localStorage.getItem('all_posts') || '[]');
+        
+        let html = `
             <div class="create-post-card">
                 <div class="create-post-top">
                     <img src="${getAvatar(currentUser.id)}">
-                    <div class="create-post-input" onclick="window.focusPostInput && window.focusPostInput()">ما الذي يدور في ذهنك؟</div>
+                    <div class="create-post-input" onclick="focusPostInput()">ما الذي يدور في ذهنك؟</div>
                 </div>
                 <div class="create-post-divider"></div>
                 <div class="post-tools">
@@ -633,7 +813,6 @@
             </div>
         `;
         
-        // عرض المنشورات
         if(posts.length > 0) {
             const reversedPosts = [...posts].reverse();
             for(const post of reversedPosts) {
@@ -665,40 +844,6 @@
             html += `<div style="background:var(--card); border-radius:16px; padding:20px; text-align:center; color:var(--text-secondary);">لا توجد منشورات بعد. كن أول من ينشر!</div>`;
         }
         
-        // عرض المحادثات النشطة (المجموعة العامة + المحادثات الخاصة)
-        html += `<div style="margin:8px 0 4px; font-weight:bold; color:var(--text-secondary);">💬 محادثاتك</div>`;
-        
-        // إضافة المجموعة العامة دائماً
-        const groupUnread = unreadCounts['group'] || 0;
-        html += `
-            <div class="chat-card" onclick="openChat('group', 'المجموعة العامة')">
-                <img src="https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100" class="chat-avatar">
-                <div class="chat-details">
-                    <div class="chat-name">المجموعة العامة</div>
-                    <div class="chat-preview">مفتوحة لجميع الموظفين</div>
-                </div>
-                ${groupUnread ? `<div class="unread-badge">${groupUnread}</div>` : ''}
-            </div>
-        `;
-        
-        // المحادثات الخاصة النشطة
-        if(chatUsers.length) {
-            for(const user of chatUsers) {
-                const chatId = [currentUser.id, user.id].sort().join('_');
-                const unread = unreadCounts[chatId] || 0;
-                html += `
-                    <div class="chat-card" onclick="openChat('${user.id}','${escapeHtml(user.name)}')">
-                        <img src="${getAvatar(user.id)}" class="chat-avatar">
-                        <div class="chat-details">
-                            <div class="chat-name">${escapeHtml(user.name)} ${onlineUsers.has(user.id) ? '🟢' : ''}</div>
-                            <div class="chat-preview">${user.job}</div>
-                        </div>
-                        ${unread ? `<div class="unread-badge">${unread}</div>` : ''}
-                    </div>
-                `;
-            }
-        }
-        
         container.innerHTML = html;
         
         // ربط الأحداث
@@ -710,7 +855,37 @@
         if(postImageInput) postImageInput.onchange = (e) => previewPostImage(e);
     }
     
-    // معاينة الصورة قبل النشر
+    // عرض سجل المكالمات
+    function renderCalls() {
+        const container = document.getElementById('callsList');
+        if(!container) return;
+        const calls = JSON.parse(localStorage.getItem('call_logs') || '[]');
+        const myCalls = calls.filter(c => c.caller_id == currentUser.id || c.callee_id == currentUser.id);
+        
+        if(myCalls.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">لا توجد مكالمات سابقة</div>';
+            return;
+        }
+        
+        container.innerHTML = myCalls.map(call => {
+            const otherId = call.caller_id == currentUser.id ? call.callee_id : call.caller_id;
+            const other = allEmployees.find(e => e.id == otherId);
+            const isMissed = call.missed;
+            const icon = call.call_type === 'video' ? '<i class="fas fa-video"></i>' : '<i class="fas fa-phone-alt"></i>';
+            return `
+                <div class="call-item" onclick="openChat('${otherId}','${other?.name}')">
+                    <img src="${getAvatar(otherId)}" style="width:48px;height:48px;border-radius:50%;">
+                    <div style="flex:1;">
+                        <div style="font-weight:bold;">${other?.name || 'مستخدم'}</div>
+                        <div style="font-size:12px;color:${isMissed ? 'red' : 'green'};">${icon} ${isMissed ? 'فاتت' : 'تمت'} • ${new Date(call.timestamp).toLocaleString()}</div>
+                    </div>
+                    <button onclick="event.stopPropagation();makeCall('${otherId}', '${call.call_type}')" style="background:var(--primary);border:none;border-radius:20px;padding:8px 16px;color:white;"><i class="fas fa-phone"></i></button>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // دوال المنشورات
     let postImageFile = null;
     function previewPostImage(e) {
         postImageFile = e.target.files[0];
@@ -742,7 +917,7 @@
         if(postImageFile) {
             imageUrl = URL.createObjectURL(postImageFile);
         }
-        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const posts = JSON.parse(localStorage.getItem('all_posts') || '[]');
         const newPost = {
             id: Date.now(),
             user_id: currentUser.id,
@@ -752,21 +927,24 @@
             created_at: new Date().toISOString()
         };
         posts.push(newPost);
-        localStorage.setItem('posts', JSON.stringify(posts));
-        const newPostText = document.getElementById('newPostText');
-        const postPreview = document.getElementById('postPreview');
-        if(newPostText) {
-            newPostText.value = '';
-            newPostText.style.display = 'none';
-        }
-        if(postPreview) postPreview.style.display = 'none';
+        localStorage.setItem('all_posts', JSON.stringify(posts));
+        document.getElementById('newPostText').value = '';
+        document.getElementById('newPostText').style.display = 'none';
+        document.getElementById('postPreview').style.display = 'none';
         postImageFile = null;
-        renderUnifiedFeed();
-        showNotif('تم النشر بنجاح', '✅');
+        if(currentTab === 'posts') renderPosts();
+        showNotif('تم النشر بنجاح، سيراه الجميع', '✅');
+        // إشعار للمستخدمين الآخرين
+        showNotifForOthers('📢 منشور جديد من ' + currentUser.name);
+    }
+    
+    function showNotifForOthers(msg) {
+        // محاكاة إشعار للمستخدمين الآخرين
+        console.log('إشعار عام:', msg);
     }
     
     window.toggleLike = function(postId) {
-        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const posts = JSON.parse(localStorage.getItem('all_posts') || '[]');
         const post = posts.find(p => p.id == postId);
         if(post) {
             if(post.likes && post.likes.includes(currentUser.id)) {
@@ -775,27 +953,27 @@
                 if(!post.likes) post.likes = [];
                 post.likes.push(currentUser.id);
             }
-            localStorage.setItem('posts', JSON.stringify(posts));
-            renderUnifiedFeed();
+            localStorage.setItem('all_posts', JSON.stringify(posts));
+            if(currentTab === 'posts') renderPosts();
         }
     };
     
     window.sharePostToGroup = function(postId) {
-        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const posts = JSON.parse(localStorage.getItem('all_posts') || '[]');
         const post = posts.find(p => p.id == postId);
         if(post) {
             addMessage('group', currentUser.id, `📢 منشور: ${post.text}`);
             showNotif('تمت المشاركة في المجموعة العامة');
-            renderUnifiedFeed();
+            if(currentTab === 'chats') renderChatsList();
         }
     };
     
     window.deletePost = function(postId) {
         if(confirm('حذف المنشور؟')) {
-            let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            let posts = JSON.parse(localStorage.getItem('all_posts') || '[]');
             posts = posts.filter(p => p.id != postId);
-            localStorage.setItem('posts', JSON.stringify(posts));
-            renderUnifiedFeed();
+            localStorage.setItem('all_posts', JSON.stringify(posts));
+            if(currentTab === 'posts') renderPosts();
             showNotif('تم حذف المنشور', '🗑️');
         }
     };
@@ -805,7 +983,6 @@
         activeChat = { id, name };
         currentChatId = id === 'group' ? 'group' : [currentUser.id, id].sort().join('_');
         addToActiveChats(currentChatId);
-        // حذف الإشعارات غير المقروءة
         if(unreadCounts[currentChatId]) {
             delete unreadCounts[currentChatId];
             localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
@@ -815,7 +992,7 @@
         document.getElementById('chatName').innerText = name;
         document.getElementById('chatAvatar').src = getAvatar(id);
         renderMessages();
-        renderUnifiedFeed();
+        if(currentTab === 'chats') renderChatsList();
     };
     
     function renderMessages() {
@@ -845,32 +1022,96 @@
         addMessage(currentChatId, currentUser.id, input.value);
         input.value = '';
         renderMessages();
-        renderUnifiedFeed();
+        if(currentTab === 'chats') renderChatsList();
+        // إشعار للمتلقي
+        if(currentChatId !== 'group') {
+            const otherId = currentChatId.split('_').find(id => id != currentUser.id);
+            if(otherId) {
+                const oldUnread = unreadCounts[currentChatId] || 0;
+                unreadCounts[currentChatId] = oldUnread + 1;
+                localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
+            }
+        }
     }
     
+    // دوال المكالمات
+    function makeCall(userId, type) {
+        const user = allEmployees.find(e => e.id == userId);
+        showNotif(`جاري الاتصال بـ ${user?.name}...`, '📞');
+        // تسجيل المكالمة
+        const calls = JSON.parse(localStorage.getItem('call_logs') || '[]');
+        calls.push({
+            id: Date.now(),
+            caller_id: currentUser.id,
+            callee_id: userId,
+            call_type: type,
+            missed: false,
+            timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('call_logs', JSON.stringify(calls));
+        setTimeout(() => {
+            showNotif(`لم يتم الرد على المكالمة`, '📞');
+        }, 5000);
+    }
+    
+    // عرض المتصلين في الأعلى
     function renderStories() {
         const container = document.getElementById('storiesContainer');
         if(!container) return;
         let html = `<div class="story-item" onclick="changeProfilePicture()"><img src="${getAvatar(currentUser.id)}" class="story-avatar"><span style="font-size:11px;">حسابي</span></div>`;
-        const onlineList = allEmployees.filter(e => e.id != currentUser.id && onlineUsers.has(e.id)).slice(0,8);
-        onlineList.forEach(e => { 
-            html += `<div class="story-item" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatar(e.id)}" class="story-avatar"><div class="online-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`; 
+        // عرض جميع الموظفين الآخرين في الستوري (وليس فقط المتصلين)
+        const otherEmployees = allEmployees.filter(e => e.id != currentUser.id);
+        otherEmployees.forEach(e => { 
+            const isOnline = onlineUsers.has(e.id);
+            html += `<div class="story-item" onclick="openChat('${e.id}','${e.name}')">
+                        <img src="${getAvatar(e.id)}" class="story-avatar">
+                        ${isOnline ? '<div class="online-dot"></div>' : ''}
+                        <span style="font-size:11px;">${e.name.split(' ')[0]}</span>
+                    </div>`; 
         });
         container.innerHTML = html;
     }
     
-    // محاكاة المتصلين (لأغراض العرض)
+    // محاكاة المتصلين العشوائيين
     function simulateOnlineUsers() {
         setInterval(() => {
             if(!currentUser) return;
             const otherEmployees = allEmployees.filter(e => e.id != currentUser.id);
             const randomCount = Math.floor(Math.random() * Math.min(5, otherEmployees.length)) + 1;
-            const randomUsers = otherEmployees.slice(0, randomCount);
+            const shuffled = [...otherEmployees].sort(() => 0.5 - Math.random());
+            const randomUsers = shuffled.slice(0, randomCount);
             onlineUsers.clear();
             randomUsers.forEach(u => onlineUsers.add(u.id));
             renderStories();
-            renderUnifiedFeed();
+            if(currentTab === 'chats') renderChatsList();
         }, 15000);
+    }
+    
+    // تبديل التبويبات
+    function switchTab(tab) {
+        currentTab = tab;
+        const feedContainer = document.getElementById('feedContainer');
+        const callsContainer = document.getElementById('callsContainer');
+        
+        // تحديث المظهر النشط للأيقونات
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if(item.dataset.tab === tab) item.classList.add('active');
+        });
+        
+        if(tab === 'chats') {
+            feedContainer.style.display = 'flex';
+            callsContainer.style.display = 'none';
+            renderChatsList();
+        } else if(tab === 'posts') {
+            feedContainer.style.display = 'flex';
+            callsContainer.style.display = 'none';
+            renderPosts();
+        } else if(tab === 'calls') {
+            feedContainer.style.display = 'none';
+            callsContainer.style.display = 'flex';
+            renderCalls();
+        }
     }
     
     // تحميل الموظفين من ملف CSV
@@ -935,11 +1176,16 @@
             if(adminBtn) adminBtn.style.display = 'block';
         }
         renderStories();
-        renderUnifiedFeed();
+        switchTab('chats');
         simulateOnlineUsers();
+        startPolling();
     }
     
     // ربط الأحداث
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => switchTab(item.dataset.tab));
+    });
+    
     const loginSearch = document.getElementById('loginSearch');
     if(loginSearch) loginSearch.addEventListener('input', searchEmployees);
     
@@ -971,7 +1217,7 @@
             document.getElementById('chatScreen').style.display = 'none'; 
             document.getElementById('app').style.display = 'flex'; 
             activeChat = null; 
-            renderUnifiedFeed(); 
+            if(currentTab === 'chats') renderChatsList();
         });
     }
     
@@ -1026,10 +1272,16 @@
     if(changeAvatarBtn) changeAvatarBtn.addEventListener('click', () => alert('تغيير الصورة: اختر صورة من جهازك'));
     
     const callAudio = document.getElementById('callAudioBtn');
-    if(callAudio) callAudio.addEventListener('click', () => showNotif('مكالمة صوتية قريباً', '📞'));
+    if(callAudio) callAudio.addEventListener('click', () => {
+        if(activeChat && activeChat.id !== 'group') makeCall(activeChat.id, 'audio');
+        else showNotif('اختر محادثة خاصة لإجراء مكالمة', '⚠️');
+    });
     
     const callVideo = document.getElementById('callVideoBtn');
-    if(callVideo) callVideo.addEventListener('click', () => showNotif('مكالمة فيديو قريباً', '📹'));
+    if(callVideo) callVideo.addEventListener('click', () => {
+        if(activeChat && activeChat.id !== 'group') makeCall(activeChat.id, 'video');
+        else showNotif('اختر محادثة خاصة لإجراء مكالمة', '⚠️');
+    });
     
     window.deleteEmployee = function(id) {
         allEmployees = allEmployees.filter(e => e.id != id);
@@ -1057,4 +1309,4 @@
 })();
 </script>
 </body>
-</html>
+</html>   
