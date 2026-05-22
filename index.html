@@ -19,7 +19,6 @@
             --text: #050505;
             --text-secondary: #65676b;
             --primary: #0084ff;
-            --primary-dark: #0073e6;
             --border: #ced0d4;
             --online: #31a24c;
             --like: #e91e63;
@@ -140,7 +139,7 @@
             color: var(--text-secondary);
         }
 
-        /* Stories Row - المتصلين في الأعلى */
+        /* Stories Row - المتصلون فقط في الأعلى */
         .stories-row {
             display: flex;
             gap: 12px;
@@ -429,7 +428,7 @@
             color: var(--text);
         }
 
-        /* Bottom Navigation - أيقونات الأسفل */
+        /* Bottom Navigation */
         .bottom-nav {
             display: flex;
             justify-content: space-around;
@@ -524,20 +523,6 @@
             z-index: 3000;
             display: none;
         }
-
-        .call-notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card);
-            border-radius: 24px;
-            padding: 20px;
-            z-index: 1500;
-            display: none;
-            text-align: center;
-            width: 280px;
-        }
     </style>
 </head>
 <body>
@@ -575,9 +560,9 @@
         </div>
     </div>
     
+    <!-- شريط المتصلين فقط -->
     <div class="stories-row" id="storiesContainer"></div>
     
-    <!-- المحتوى الرئيسي (يتغير حسب التبويب) -->
     <div id="feedContainer" class="feed-container" style="display:flex;"></div>
     <div id="callsContainer" class="calls-screen" style="display:none;">
         <div class="calls-header">
@@ -587,7 +572,6 @@
         <div class="calls-list" id="callsList"></div>
     </div>
     
-    <!-- أيقونات الأسفل -->
     <div class="bottom-nav">
         <div class="nav-item active" data-tab="chats">
             <i class="fas fa-comment-dots"></i>
@@ -629,11 +613,9 @@
 </div>
 
 <div id="notification" class="notification"></div>
-<div id="callNotification" class="call-notification"></div>
 
 <script>
 (function(){
-    // بيانات الموظفين
     let allEmployees = [];
     let currentUser = null;
     let activeChat = null;
@@ -642,7 +624,6 @@
     let onlineUsers = new Set();
     let currentTab = 'chats';
     
-    // دوال مساعدة
     function showNotif(msg, icon='🔔') {
         const n = document.getElementById('notification');
         n.innerHTML = icon + ' ' + msg;
@@ -676,20 +657,12 @@
         }
     }
     
-    // دوال الرسائل (مشتركة بين جميع المستخدمين)
-    function getAllMessages() {
-        return JSON.parse(localStorage.getItem('all_messages') || '{}');
-    }
-    function getMessages(chatId) {
-        const all = getAllMessages();
-        return all[chatId] || [];
-    }
+    function getAllMessages() { return JSON.parse(localStorage.getItem('all_messages') || '{}'); }
+    function getMessages(chatId) { return getAllMessages()[chatId] || []; }
     function saveMessages(chatId, msgs) {
         const all = getAllMessages();
         all[chatId] = msgs;
         localStorage.setItem('all_messages', JSON.stringify(all));
-        // إشعار لجميع المستخدمين الآخرين (محاكاة الـ realtime)
-        triggerRealtimeUpdate(chatId);
     }
     function addMessage(chatId, senderId, text) {
         const msgs = getMessages(chatId);
@@ -705,34 +678,6 @@
         return newMsg;
     }
     
-    // تحديث فوري لجميع المستخدمين (محاكاة)
-    function triggerRealtimeUpdate(chatId) {
-        // تخزين وقت آخر تحديث
-        localStorage.setItem('last_update_' + chatId, Date.now());
-        // إذا كان هناك مستخدم آخر نشط، نقوم بتحديث واجهته
-        if(currentUser) {
-            // تحديث المحادثة الحالية إذا كانت مفتوحة
-            if(currentChatId === chatId) {
-                renderMessages();
-            }
-            // تحديث التايم لاين
-            if(currentTab === 'chats') renderChatsList();
-        }
-    }
-    
-    // التحقق من التحديثات (polling بسيط)
-    function startPolling() {
-        setInterval(() => {
-            if(currentUser && currentChatId) {
-                renderMessages();
-            }
-            if(currentUser && currentTab === 'chats') {
-                renderChatsList();
-            }
-        }, 2000);
-    }
-    
-    // عرض قائمة الدردشات
     function renderChatsList() {
         if(!currentUser) return;
         const container = document.getElementById('feedContainer');
@@ -748,7 +693,6 @@
         
         let html = '';
         
-        // إضافة المجموعة العامة
         const groupMsgs = getMessages('group');
         const groupLastMsg = groupMsgs.length > 0 ? groupMsgs[groupMsgs.length-1].text : 'مرحباً بالجميع';
         const groupUnread = unreadCounts['group'] || 0;
@@ -763,7 +707,6 @@
             </div>
         `;
         
-        // المحادثات الخاصة
         for(const user of chatUsers) {
             const chatId = [currentUser.id, user.id].sort().join('_');
             const msgs = getMessages(chatId);
@@ -782,13 +725,12 @@
         }
         
         if(chatUsers.length === 0) {
-            html += `<div style="background:var(--card); border-radius:16px; padding:20px; text-align:center; color:var(--text-secondary);">لا توجد محادثات بعد. ابدأ محادثة جديدة من قائمة المتصلين في الأعلى</div>`;
+            html += `<div style="background:var(--card); border-radius:16px; padding:20px; text-align:center; color:var(--text-secondary);">لا توجد محادثات بعد. ابدأ محادثة جديدة من شريط المتصلين في الأعلى</div>`;
         }
         
         container.innerHTML = html;
     }
     
-    // عرض المنشورات (يراها الجميع)
     function renderPosts() {
         if(!currentUser) return;
         const container = document.getElementById('feedContainer');
@@ -846,7 +788,6 @@
         
         container.innerHTML = html;
         
-        // ربط الأحداث
         const imageUploadBtn = document.getElementById('imageUploadBtn');
         const publishPostBtn = document.getElementById('publishPostBtn');
         const postImageInput = document.getElementById('postImageInput');
@@ -855,7 +796,6 @@
         if(postImageInput) postImageInput.onchange = (e) => previewPostImage(e);
     }
     
-    // عرض سجل المكالمات
     function renderCalls() {
         const container = document.getElementById('callsList');
         if(!container) return;
@@ -885,7 +825,6 @@
         }).join('');
     }
     
-    // دوال المنشورات
     let postImageFile = null;
     function previewPostImage(e) {
         postImageFile = e.target.files[0];
@@ -934,13 +873,6 @@
         postImageFile = null;
         if(currentTab === 'posts') renderPosts();
         showNotif('تم النشر بنجاح، سيراه الجميع', '✅');
-        // إشعار للمستخدمين الآخرين
-        showNotifForOthers('📢 منشور جديد من ' + currentUser.name);
-    }
-    
-    function showNotifForOthers(msg) {
-        // محاكاة إشعار للمستخدمين الآخرين
-        console.log('إشعار عام:', msg);
     }
     
     window.toggleLike = function(postId) {
@@ -978,7 +910,6 @@
         }
     };
     
-    // دوال الدردشة
     window.openChat = function(id, name) {
         activeChat = { id, name };
         currentChatId = id === 'group' ? 'group' : [currentUser.id, id].sort().join('_');
@@ -1023,7 +954,6 @@
         input.value = '';
         renderMessages();
         if(currentTab === 'chats') renderChatsList();
-        // إشعار للمتلقي
         if(currentChatId !== 'group') {
             const otherId = currentChatId.split('_').find(id => id != currentUser.id);
             if(otherId) {
@@ -1034,66 +964,77 @@
         }
     }
     
-    // دوال المكالمات
     function makeCall(userId, type) {
         const user = allEmployees.find(e => e.id == userId);
         showNotif(`جاري الاتصال بـ ${user?.name}...`, '📞');
-        // تسجيل المكالمة
         const calls = JSON.parse(localStorage.getItem('call_logs') || '[]');
         calls.push({
             id: Date.now(),
             caller_id: currentUser.id,
             callee_id: userId,
             call_type: type,
-            missed: false,
+            missed: true,
             timestamp: new Date().toISOString()
         });
         localStorage.setItem('call_logs', JSON.stringify(calls));
         setTimeout(() => {
             showNotif(`لم يتم الرد على المكالمة`, '📞');
+            if(currentTab === 'calls') renderCalls();
         }, 5000);
     }
     
-    // عرض المتصلين في الأعلى
+    // عرض المتصلين فقط في الأعلى
     function renderStories() {
         const container = document.getElementById('storiesContainer');
         if(!container) return;
-        let html = `<div class="story-item" onclick="changeProfilePicture()"><img src="${getAvatar(currentUser.id)}" class="story-avatar"><span style="font-size:11px;">حسابي</span></div>`;
-        // عرض جميع الموظفين الآخرين في الستوري (وليس فقط المتصلين)
-        const otherEmployees = allEmployees.filter(e => e.id != currentUser.id);
-        otherEmployees.forEach(e => { 
-            const isOnline = onlineUsers.has(e.id);
+        
+        // حساب المستخدم الحالي + المتصلين فقط
+        const onlineList = allEmployees.filter(e => e.id != currentUser.id && onlineUsers.has(e.id));
+        
+        if(onlineList.length === 0) {
+            container.innerHTML = `<div style="padding:10px; color:var(--text-secondary);">لا يوجد متصلين حالياً</div>`;
+            return;
+        }
+        
+        let html = `<div class="story-item" onclick="changeProfilePicture()">
+                        <img src="${getAvatar(currentUser.id)}" class="story-avatar">
+                        <span style="font-size:11px;">حسابي</span>
+                    </div>`;
+        
+        onlineList.forEach(e => { 
             html += `<div class="story-item" onclick="openChat('${e.id}','${e.name}')">
                         <img src="${getAvatar(e.id)}" class="story-avatar">
-                        ${isOnline ? '<div class="online-dot"></div>' : ''}
+                        <div class="online-dot"></div>
                         <span style="font-size:11px;">${e.name.split(' ')[0]}</span>
                     </div>`; 
         });
+        
         container.innerHTML = html;
     }
     
-    // محاكاة المتصلين العشوائيين
-    function simulateOnlineUsers() {
-        setInterval(() => {
-            if(!currentUser) return;
-            const otherEmployees = allEmployees.filter(e => e.id != currentUser.id);
-            const randomCount = Math.floor(Math.random() * Math.min(5, otherEmployees.length)) + 1;
-            const shuffled = [...otherEmployees].sort(() => 0.5 - Math.random());
-            const randomUsers = shuffled.slice(0, randomCount);
-            onlineUsers.clear();
-            randomUsers.forEach(u => onlineUsers.add(u.id));
-            renderStories();
-            if(currentTab === 'chats') renderChatsList();
-        }, 15000);
+    // تحديث المتصلين بشكل عشوائي (محاكاة)
+    function updateOnlineUsers() {
+        if(!currentUser) return;
+        const otherEmployees = allEmployees.filter(e => e.id != currentUser.id);
+        if(otherEmployees.length === 0) return;
+        
+        // عدد عشوائي من المتصلين بين 1 و 4
+        const randomCount = Math.floor(Math.random() * Math.min(4, otherEmployees.length)) + 1;
+        const shuffled = [...otherEmployees].sort(() => 0.5 - Math.random());
+        const randomUsers = shuffled.slice(0, randomCount);
+        
+        onlineUsers.clear();
+        randomUsers.forEach(u => onlineUsers.add(u.id));
+        
+        renderStories();
+        if(currentTab === 'chats') renderChatsList();
     }
     
-    // تبديل التبويبات
     function switchTab(tab) {
         currentTab = tab;
         const feedContainer = document.getElementById('feedContainer');
         const callsContainer = document.getElementById('callsContainer');
         
-        // تحديث المظهر النشط للأيقونات
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
             if(item.dataset.tab === tab) item.classList.add('active');
@@ -1114,41 +1055,29 @@
         }
     }
     
-    // تحميل الموظفين من ملف CSV
     async function loadEmployeesFromCSV() {
         try {
             const response = await fetch('./employees.csv');
-            if(!response.ok) {
-                throw new Error('ملف employees.csv غير موجود');
-            }
+            if(!response.ok) throw new Error('ملف employees.csv غير موجود');
             const text = await response.text();
             const lines = text.replace(/^\uFEFF/, '').split('\n').filter(l => l.trim() && !l.startsWith('الرقم'));
             allEmployees = lines.map(line => {
                 const parts = line.split(';');
-                return {
-                    id: parts[0]?.trim(),
-                    name: parts[1]?.trim(),
-                    job: parts[2]?.trim()
-                };
+                return { id: parts[0]?.trim(), name: parts[1]?.trim(), job: parts[2]?.trim() };
             }).filter(e => e.id && e.name);
-            
             document.getElementById('statusBar').innerHTML = `✅ تم تحميل ${allEmployees.length} موظف`;
             return true;
         } catch(error) {
-            console.error('خطأ في تحميل الموظفين:', error);
+            console.error(error);
             document.getElementById('statusBar').innerHTML = '❌ فشل تحميل ملف employees.csv';
             return false;
         }
     }
     
-    // دوال تسجيل الدخول
     function searchEmployees() {
         const q = document.getElementById('loginSearch').value.trim();
         const drop = document.getElementById('searchDropdown');
-        if(!q) { 
-            if(drop) drop.style.display = 'none';
-            return; 
-        }
+        if(!q) { if(drop) drop.style.display = 'none'; return; }
         const matches = allEmployees.filter(e => e.name && e.name.includes(q));
         if(drop) {
             drop.innerHTML = matches.map(e => `<div class="dropdown-item" onclick="selectEmployee('${e.id}')"><img src="${getAvatar(e.id)}" style="width:40px;height:40px;border-radius:50%;"><div><b>${e.name}</b><br><small>${e.job}</small></div></div>`).join('');
@@ -1177,8 +1106,9 @@
         }
         renderStories();
         switchTab('chats');
-        simulateOnlineUsers();
-        startPolling();
+        // تحديث المتصلين كل 10 ثواني
+        setInterval(() => updateOnlineUsers(), 10000);
+        updateOnlineUsers();
     }
     
     // ربط الأحداث
@@ -1197,9 +1127,7 @@
                 currentUser = selectedEmp;
                 localStorage.setItem('current_user', JSON.stringify(currentUser));
                 startApp();
-            } else {
-                alert('الرقم الوظيفي غير صحيح');
-            }
+            } else alert('الرقم الوظيفي غير صحيح');
         });
     }
     
@@ -1260,7 +1188,7 @@
             const job = document.getElementById('newEmpJob').value.trim();
             if(name && id && job) {
                 allEmployees.push({ id, name, job });
-                alert('تمت إضافة الموظف (لحفظ دائم، قم بتحديث ملف employees.csv)');
+                alert('تمت إضافة الموظف');
                 document.getElementById('newEmpName').value = '';
                 document.getElementById('newEmpId').value = '';
                 document.getElementById('newEmpJob').value = '';
@@ -1285,14 +1213,13 @@
     
     window.deleteEmployee = function(id) {
         allEmployees = allEmployees.filter(e => e.id != id);
-        alert('تم حذف الموظف (لحفظ دائم، قم بتحديث ملف employees.csv)');
+        alert('تم حذف الموظف');
         const panel = document.getElementById('adminPanel');
         if(panel) panel.style.display = 'none';
     };
     
     window.changeProfilePicture = function() { alert('تغيير الصورة: سيتم تفعيله لاحقاً'); };
     
-    // التحقق من الدخول التلقائي
     const savedUser = localStorage.getItem('current_user');
     if(savedUser) {
         loadEmployeesFromCSV().then(() => {
@@ -1309,4 +1236,4 @@
 })();
 </script>
 </body>
-</html>   
+</html>
