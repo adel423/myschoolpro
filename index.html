@@ -46,7 +46,6 @@
             overflow: hidden;
         }
 
-        /* Login Screen */
         .login-screen {
             background: var(--card);
             border-radius: 20px;
@@ -106,7 +105,6 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* Main App */
         #app {
             display: none;
             width: 100%;
@@ -118,7 +116,6 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
-        /* Header */
         .messenger-header {
             background: var(--card);
             padding: 12px 16px;
@@ -140,7 +137,6 @@
             color: var(--text-secondary);
         }
 
-        /* Stories Row */
         .stories-row {
             display: flex;
             gap: 12px;
@@ -178,7 +174,6 @@
             margin-right: 40px;
         }
 
-        /* Feed Container */
         .feed-container {
             flex: 1;
             overflow-y: auto;
@@ -188,7 +183,6 @@
             gap: 12px;
         }
 
-        /* Create Post Box */
         .create-post-card {
             background: var(--card);
             border-radius: 16px;
@@ -241,7 +235,6 @@
             font-size: 14px;
         }
 
-        /* Post Card */
         .post-card {
             background: var(--card);
             border-radius: 16px;
@@ -310,7 +303,6 @@
             color: var(--like);
         }
 
-        /* Chat Card */
         .chat-card {
             background: var(--card);
             border-radius: 16px;
@@ -351,7 +343,6 @@
             font-weight: bold;
         }
 
-        /* Chat Screen */
         .chat-screen {
             position: absolute;
             top: 0;
@@ -429,7 +420,6 @@
             color: var(--text);
         }
 
-        /* Modal & Overlays */
         .modal {
             position: fixed;
             top: 50%;
@@ -443,35 +433,6 @@
             width: 90%;
             max-width: 350px;
             text-align: center;
-        }
-
-        .call-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1c1e21;
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .incoming-call {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card);
-            border-radius: 24px;
-            padding: 20px;
-            z-index: 1500;
-            display: none;
-            text-align: center;
-            width: 280px;
         }
 
         .notification {
@@ -496,7 +457,7 @@
     <p style="color:var(--text-secondary); margin-bottom:16px;">تواصل المؤسسة</p>
     <div id="statusBar" style="font-size:12px; margin-bottom:10px;">⏳ جاري التحميل...</div>
     <div id="searchPhase">
-        <input type="text" id="loginSearch" class="input-field" placeholder="🔍 اكتب اسمك..." oninput="searchEmployees()">
+        <input type="text" id="loginSearch" class="input-field" placeholder="🔍 اكتب اسمك...">
         <div id="searchDropdown" class="dropdown-list"></div>
     </div>
     <div id="credentialsPhase" style="display:none;">
@@ -510,7 +471,7 @@
         <input type="text" id="newEmpName" placeholder="الاسم الكامل" class="input-field">
         <input type="text" id="newEmpId" placeholder="الرقم الوظيفي" class="input-field">
         <input type="text" id="newEmpJob" placeholder="الوظيفة" class="input-field">
-        <button onclick="addEmployee()" class="login-btn" style="background:#2e7d32;">إضافة موظف</button>
+        <button id="addEmpBtn" class="login-btn" style="background:#2e7d32;">إضافة موظف</button>
         <div id="empDeleteList"></div>
     </div>
 </div>
@@ -523,15 +484,10 @@
             <i class="fas fa-sign-out-alt" id="logoutIcon" style="color:var(--danger); cursor:pointer;"></i>
         </div>
     </div>
-
     <div class="stories-row" id="storiesContainer"></div>
-
-    <div class="feed-container" id="feedContainer">
-        <!-- المنشورات والمحادثات تظهر معاً -->
-    </div>
+    <div class="feed-container" id="feedContainer"></div>
 </div>
 
-<!-- شاشة الدردشة -->
 <div id="chatScreen" class="chat-screen">
     <div class="chat-header">
         <i class="fas fa-arrow-right" id="closeChatBtn" style="cursor:pointer; font-size:20px;"></i>
@@ -543,53 +499,71 @@
     <div class="messages-area" id="messagesArea"></div>
     <div class="input-bar">
         <label for="fileInput" style="cursor:pointer;"><i class="fas fa-paperclip"></i></label>
-        <input type="file" id="fileInput" style="display:none;" accept="image/*,.pdf,.docx">
+        <input type="file" id="fileInput" style="display:none;">
         <input type="text" id="msgInput" placeholder="اكتب رسالة...">
         <i class="fas fa-paper-plane" id="sendMsgBtn" style="color:var(--primary); font-size:20px; cursor:pointer;"></i>
     </div>
 </div>
 
-<!-- مودال الإعدادات -->
 <div id="settingsModal" class="modal">
     <h3>الإعدادات</h3>
-    <button class="login-btn" onclick="changeProfilePicture()" style="background:#555;">تغيير الصورة</button>
-    <button id="adminModalBtn" class="login-btn" style="background:#f57c00; display:none;" onclick="toggleAdminPanel()">إدارة الموظفين</button>
-    <button class="login-btn" onclick="document.getElementById('settingsModal').style.display='none'">إغلاق</button>
+    <button class="login-btn" id="changeAvatarBtn" style="background:#555;">تغيير الصورة</button>
+    <button id="adminModalBtn" class="login-btn" style="background:#f57c00; display:none;">إدارة الموظفين</button>
+    <button class="login-btn" id="closeModalBtn">إغلاق</button>
 </div>
 
-<!-- مكالمات -->
-<div id="callOverlay" class="call-overlay">
-    <div id="callName" style="font-size:24px;"></div>
-    <video id="remoteVideo" style="width:80%; border-radius:20px; margin:20px;" autoplay playsinline></video>
-    <video id="localVideo" style="position:absolute; bottom:80px; right:20px; width:100px; border-radius:10px;" autoplay playsinline muted></video>
-    <button id="hangupBtn" style="background:#f44336; border:none; border-radius:50%; width:60px; height:60px; color:white; font-size:24px;"><i class="fas fa-phone-slash"></i></button>
-</div>
-<div id="incomingCall" class="incoming-call"></div>
 <div id="notification" class="notification"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ------------------------------------ الإعدادات الأساسية ------------------------------------
-    const SUPABASE_URL = 'https://nfywbkvsvmhaczfatxkp.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_VZMRpated19TvFgjTuf1Lw_uW7dOiHY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const DIRECTOR_ID = '1098107010228600';
+(function(){
+    // بيانات الموظفين المدمجة (بدلاً من ملف CSV)
+    const DEFAULT_EMPLOYEES = [
+        { id: "1098107010228600", name: "المهندس رحمن", job: "مدير عام" },
+        { id: "1001", name: "أحمد محمد", job: "مبرمج" },
+        { id: "1002", name: "سارة علي", job: "محاسبة" },
+        { id: "1003", name: "محمد خالد", job: "مسؤول تسويق" },
+        { id: "1004", name: "فاطمة حسن", job: "مديرة موارد بشرية" },
+        { id: "1005", name: "عمر ابراهيم", job: "مهندس شبكات" },
+        { id: "1006", name: "ليلى سعيد", job: "مصممة جرافيك" },
+        { id: "1007", name: "ياسين بلهاني", job: "محلل بيانات" },
+        { id: "1008", name: "نويني مادوييكي", job: "مستشار" }
+    ];
 
     // متغيرات عامة
-    let allEmployees = [];
+    let allEmployees = [...DEFAULT_EMPLOYEES];
     let currentUser = null;
     let activeChat = null;
     let currentChatId = null;
     let unreadCounts = JSON.parse(localStorage.getItem('unread_counts') || '{}');
     let onlineUsers = new Set();
-    let messagesChannel = null;
-    let postsChannel = null;
-    let likesChannel = null;
-    let presenceChannel = null;
+    let messages = {}; // تخزين الرسائل محلياً
 
-    // ------------------------------------ دوال مساعدة ------------------------------------
-    function getActiveChatsKey() { return `active_chats_${currentUser.id}`; }
-    function getActiveChats() { return JSON.parse(localStorage.getItem(getActiveChatsKey()) || '[]'); }
+    // دوال مساعدة
+    function showNotif(msg, icon='🔔') {
+        const n = document.getElementById('notification');
+        n.innerHTML = icon + ' ' + msg;
+        n.style.display = 'block';
+        setTimeout(() => n.style.display = 'none', 2500);
+    }
+
+    function escapeHtml(str) { 
+        if(!str) return '';
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+    }
+
+    function getAvatar(id) {
+        const saved = localStorage.getItem(`avatar_${id}`);
+        if (saved) return saved;
+        const emp = allEmployees.find(e => e.id == id);
+        const name = emp ? emp.name : 'User';
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0084ff&color=fff&size=100`;
+    }
+
+    function getActiveChatsKey() { return `active_chats_${currentUser?.id}`; }
+    function getActiveChats() { 
+        if(!currentUser) return [];
+        return JSON.parse(localStorage.getItem(getActiveChatsKey()) || '[]'); 
+    }
     function addToActiveChats(chatId) {
         let active = getActiveChats();
         if(!active.includes(chatId)) {
@@ -597,143 +571,42 @@
             localStorage.setItem(getActiveChatsKey(), JSON.stringify(active));
         }
     }
-    function showNotif(msg, icon='🔔') {
-        const n = document.getElementById('notification');
-        n.innerHTML = icon + ' ' + msg;
-        n.style.display = 'block';
-        setTimeout(() => n.style.display = 'none', 2500);
+
+    // بيانات الرسائل
+    function getMessages(chatId) {
+        const key = `messages_${chatId}`;
+        return JSON.parse(localStorage.getItem(key) || '[]');
     }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-    function getAvatar(id) {
-        const saved = localStorage.getItem(`avatar_${id}`);
-        if (saved) return saved;
-        const emp = allEmployees.find(e => e.id === id);
-        return `https://ui-avatars.com/api/?name=${encodeURIComponent(emp?.name || 'User')}&background=0084ff&color=fff&size=100`;
+    function saveMessages(chatId, msgs) {
+        const key = `messages_${chatId}`;
+        localStorage.setItem(key, JSON.stringify(msgs));
+    }
+    function addMessage(chatId, senderId, text) {
+        const msgs = getMessages(chatId);
+        const newMsg = {
+            id: Date.now() + '_' + Math.random(),
+            chat_id: chatId,
+            sender: senderId,
+            text: text,
+            created_at: new Date().toISOString()
+        };
+        msgs.push(newMsg);
+        saveMessages(chatId, msgs);
+        return newMsg;
     }
 
-    // ------------------------------------ تحميل الموظفين ------------------------------------
-    async function loadEmployees() {
-        try {
-            let res = await fetch('./employees.csv');
-            if (!res.ok) res = await fetch(supabase.storage.from('public').getPublicUrl('employees.csv').data.publicUrl);
-            const text = await res.text();
-            const lines = text.replace(/^\uFEFF/,'').split('\n').filter(l=>l.trim() && !l.startsWith('الرقم'));
-            allEmployees = lines.map(line => { const p=line.split(';'); return {id:p[0]?.trim(), name:p[1]?.trim(), job:p[2]?.trim()}; });
-            document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف`;
-            checkAutoLogin();
-        } catch(e) { document.getElementById('statusBar').innerText = '⚠️ خطأ في التحميل'; }
-    }
-
-    function checkAutoLogin() {
-        const saved = localStorage.getItem('current_user');
-        if (saved) {
-            const user = JSON.parse(saved);
-            const exists = allEmployees.find(e=>e.id === user.id);
-            if(exists) { currentUser = user; startApp(); }
-        }
-    }
-
-    // ------------------------------------ دوال تسجيل الدخول ------------------------------------
-    window.searchEmployees = function() {
-        const q = document.getElementById('loginSearch').value.trim();
-        const drop = document.getElementById('searchDropdown');
-        if(!q) { drop.style.display='none'; return; }
-        const matches = allEmployees.filter(e => e.name.includes(q));
-        drop.innerHTML = matches.map(e => `<div class="dropdown-item" onclick="selectEmployee('${e.id}')"><img src="${getAvatar(e.id)}" style="width:40px;height:40px;border-radius:50%;"><div><b>${e.name}</b><br><small>${e.job}</small></div></div>`).join('');
-        drop.style.display = 'block';
-    };
-
-    let selectedEmp = null;
-    window.selectEmployee = (id) => {
-        selectedEmp = allEmployees.find(e=>e.id===id);
-        document.getElementById('selectedEmpName').innerText = selectedEmp.name;
-        document.getElementById('searchPhase').style.display = 'none';
-        document.getElementById('credentialsPhase').style.display = 'block';
-        document.getElementById('searchDropdown').style.display = 'none';
-    };
-    document.getElementById('verifyIdBtn').onclick = () => {
-        if(document.getElementById('passInput').value === selectedEmp.id) {
-            currentUser = selectedEmp;
-            localStorage.setItem('current_user', JSON.stringify(currentUser));
-            startApp();
-        } else alert('الرقم الوظيفي غير صحيح');
-    };
-    document.getElementById('backToSearch').onclick = () => {
-        document.getElementById('credentialsPhase').style.display = 'none';
-        document.getElementById('searchPhase').style.display = 'block';
-    };
-
-    // ------------------------------------ بدء التطبيق ------------------------------------
-    async function startApp() {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        if(currentUser.id === DIRECTOR_ID) document.getElementById('adminModalBtn').style.display = 'block';
-        await initRealtime();
-        await initPresence();
-        renderStories();
-        renderUnifiedFeed();
-    }
-
-    // ------------------------------------ دوال المنشورات ------------------------------------
-    window.focusPostInput = () => {
-        const ta = document.getElementById('newPostText');
-        ta.style.display = 'block';
-        ta.focus();
-    };
-    let postImageFile = null;
-    window.previewPostImage = (e) => {
-        postImageFile = e.target.files[0];
-        if(postImageFile) {
-            const reader = new FileReader();
-            reader.onload = ev => { document.getElementById('postPreview').src = ev.target.result; document.getElementById('postPreview').style.display = 'block'; };
-            reader.readAsDataURL(postImageFile);
-        }
-    };
-    async function createPost() {
-        const text = document.getElementById('newPostText').value.trim();
-        if(!text && !postImageFile) return showNotif('اكتب نصاً أو اختر صورة', '⚠️');
-        let imageUrl = null;
-        if(postImageFile) {
-            const path = `posts/${currentUser.id}_${Date.now()}_${postImageFile.name}`;
-            const { error } = await supabase.storage.from('post-images').upload(path, postImageFile);
-            if(!error) imageUrl = supabase.storage.from('post-images').getPublicUrl(path).data.publicUrl;
-        }
-        await supabase.from('posts').insert({ user_id: currentUser.id, text: text || '📷', image_url: imageUrl, created_at: new Date().toISOString() });
-        document.getElementById('newPostText').value = '';
-        document.getElementById('newPostText').style.display = 'none';
-        document.getElementById('postPreview').style.display = 'none';
-        postImageFile = null;
-        renderUnifiedFeed();
-    }
-    async function toggleLike(postId) {
-        const heart = document.getElementById(`heart-${postId}`);
-        const isLiked = heart?.classList.contains('liked');
-        if(isLiked) await supabase.from('post_likes').delete().match({ post_id: postId, user_id: currentUser.id });
-        else await supabase.from('post_likes').insert({ post_id: postId, user_id: currentUser.id });
-        renderUnifiedFeed();
-    }
-    async function sharePostToGroup(postId) {
-        const { data } = await supabase.from('posts').select('text').eq('id', postId).single();
-        if(data) {
-            await supabase.from('messages').insert({ chat_id: 'group', sender: currentUser.id, text: `📢 منشور: ${data.text}`, created_at: new Date().toISOString() });
-            showNotif('تمت المشاركة في المجموعة العامة');
-        }
-    }
-    async function deletePost(postId) { if(confirm('حذف المنشور؟')) { await supabase.from('posts').delete().eq('id', postId); renderUnifiedFeed(); } }
-
-    // ------------------------------------ عرض التايم لاين الموحد (منشورات + محادثات) ------------------------------------
-    async function renderUnifiedFeed() {
+    // عرض التايم لاين الموحد
+    function renderUnifiedFeed() {
+        if(!currentUser) return;
         const container = document.getElementById('feedContainer');
         container.innerHTML = '<div style="text-align:center;padding:20px;">⏳ جاري التحميل...</div>';
         
-        // 1. المنشورات
-        const { data: posts } = await supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(20);
-        // 2. المحادثات النشطة
+        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
         const activeChatsIds = getActiveChats();
         const otherUserIds = activeChatsIds.map(chatId => {
             const ids = chatId.split('_');
-            return ids[0] === currentUser.id ? ids[1] : ids[0];
-        }).filter(id => id !== 'group' && id !== currentUser.id);
+            return ids[0] == currentUser.id ? ids[1] : ids[0];
+        }).filter(id => id !== 'group' && id != currentUser.id);
         const uniqueUserIds = [...new Set(otherUserIds)];
         const chatUsers = allEmployees.filter(e => uniqueUserIds.includes(e.id));
         
@@ -744,28 +617,25 @@
             <div class="create-post-card">
                 <div class="create-post-top">
                     <img src="${getAvatar(currentUser.id)}">
-                    <div class="create-post-input" onclick="focusPostInput()">ما الذي يدور في ذهنك؟</div>
+                    <div class="create-post-input" onclick="window.focusPostInput && window.focusPostInput()">ما الذي يدور في ذهنك؟</div>
                 </div>
                 <div class="create-post-divider"></div>
                 <div class="post-tools">
-                    <div class="tool-btn" onclick="document.getElementById('postImageInput').click()"><i class="fas fa-image" style="color:#45bd62;"></i> صورة</div>
+                    <div class="tool-btn" id="imageUploadBtn"><i class="fas fa-image" style="color:#45bd62;"></i> صورة</div>
                     <div class="tool-btn" id="publishPostBtn"><i class="fas fa-pen" style="color:var(--primary);"></i> نشر</div>
                 </div>
-                <input type="file" id="postImageInput" accept="image/*" style="display:none;" onchange="previewPostImage(event)">
+                <input type="file" id="postImageInput" accept="image/*" style="display:none;">
                 <textarea id="newPostText" placeholder="اكتب منشوراً..." style="display:none; width:100%; margin-top:8px; padding:8px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text);" rows="2"></textarea>
                 <img id="postPreview" style="max-width:100%; margin-top:8px; display:none; border-radius:12px;">
             </div>
         `;
-        document.getElementById('publishPostBtn').onclick = () => createPost();
         
         // عرض المنشورات
-        if(posts && posts.length) {
-            const { data: likesData } = await supabase.from('post_likes').select('post_id, user_id');
-            const userLikes = new Set((likesData||[]).filter(l=>l.user_id===currentUser.id).map(l=>l.post_id));
-            for(const post of posts) {
-                const user = allEmployees.find(e=>e.id===post.user_id) || {name:'مستخدم',id:post.user_id};
-                const likeCount = (likesData||[]).filter(l=>l.post_id===post.id).length;
-                const isLiked = userLikes.has(post.id);
+        if(posts.length > 0) {
+            for(const post of posts.reverse()) {
+                const user = allEmployees.find(e => e.id == post.user_id) || {name:'مستخدم', id:post.user_id};
+                const isLiked = post.likes && post.likes.includes(currentUser.id);
+                const likeCount = post.likes ? post.likes.length : 0;
                 html += `
                     <div class="post-card" data-post="${post.id}">
                         <div class="post-header">
@@ -782,7 +652,7 @@
                                 <i class="fas fa-heart ${isLiked ? 'liked' : ''}" id="heart-${post.id}"></i> <span id="likeCount-${post.id}">${likeCount}</span>
                             </div>
                             <div class="post-action" onclick="sharePostToGroup('${post.id}')"><i class="fas fa-share"></i> مشاركة</div>
-                            ${(post.user_id===currentUser.id || currentUser.id===DIRECTOR_ID) ? `<div class="post-action" onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</div>` : ''}
+                            ${(post.user_id == currentUser.id || currentUser.id == '1098107010228600') ? `<div class="post-action" onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> حذف</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -811,53 +681,94 @@
         }
         
         container.innerHTML = html;
-        if(window.postImageFile) window.postImageFile = null;
+        
+        // ربط الأحداث
+        document.getElementById('imageUploadBtn')?.addEventListener('click', () => document.getElementById('postImageInput')?.click());
+        document.getElementById('publishPostBtn')?.addEventListener('click', () => createPost());
     }
 
-    // ------------------------------------ دوال Realtime (الرسائل والمنشورات) ------------------------------------
-    async function initRealtime() {
-        postsChannel = supabase.channel('posts-feed').on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => renderUnifiedFeed()).subscribe();
-        likesChannel = supabase.channel('likes-feed').on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, () => renderUnifiedFeed()).subscribe();
-        messagesChannel = supabase.channel('global-msg').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-            const msg = payload.new;
-            if(activeChat && currentChatId === msg.chat_id) fetchMessages(currentChatId);
-            else incrementUnread(msg.chat_id, msg.sender);
-            renderUnifiedFeed();
-        }).subscribe();
-    }
+    // دوال المنشورات
+    let postImageFile = null;
+    window.previewPostImage = function(e) {
+        postImageFile = e.target.files[0];
+        if(postImageFile) {
+            const reader = new FileReader();
+            reader.onload = ev => { 
+                document.getElementById('postPreview').src = ev.target.result; 
+                document.getElementById('postPreview').style.display = 'block'; 
+            };
+            reader.readAsDataURL(postImageFile);
+        }
+    };
     
-    function incrementUnread(chatId, senderId) {
-        if(activeChat && activeChat.id !== 'group' && activeChat.id === senderId) return;
-        if(senderId === currentUser.id) return;
-        if(chatId !== 'group') addToActiveChats(chatId);
-        unreadCounts[chatId] = (unreadCounts[chatId]||0)+1;
-        localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
+    window.focusPostInput = function() {
+        const ta = document.getElementById('newPostText');
+        ta.style.display = 'block';
+        ta.focus();
+    };
+    
+    function createPost() {
+        const text = document.getElementById('newPostText').value.trim();
+        if(!text && !postImageFile) return showNotif('اكتب نصاً أو اختر صورة', '⚠️');
+        let imageUrl = null;
+        if(postImageFile) {
+            imageUrl = URL.createObjectURL(postImageFile);
+        }
+        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const newPost = {
+            id: Date.now(),
+            user_id: currentUser.id,
+            text: text || '📷',
+            image_url: imageUrl,
+            likes: [],
+            created_at: new Date().toISOString()
+        };
+        posts.push(newPost);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        document.getElementById('newPostText').value = '';
+        document.getElementById('newPostText').style.display = 'none';
+        document.getElementById('postPreview').style.display = 'none';
+        postImageFile = null;
         renderUnifiedFeed();
-        showNotif('📩 رسالة جديدة', '💬');
+        showNotif('تم النشر بنجاح', '✅');
     }
     
-    // ------------------------------------ دوال الحضور (Presence) ------------------------------------
-    function initPresence() {
-        presenceChannel = supabase.channel('online', { config: { presence: { key: currentUser.id } } });
-        presenceChannel.on('presence', { event: 'sync' }, () => {
-            const state = presenceChannel.presenceState();
-            onlineUsers.clear();
-            Object.keys(state).forEach(id => { if(id !== currentUser.id) onlineUsers.add(id); });
-            renderStories();
+    window.toggleLike = function(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const post = posts.find(p => p.id == postId);
+        if(post) {
+            if(post.likes.includes(currentUser.id)) {
+                post.likes = post.likes.filter(id => id != currentUser.id);
+            } else {
+                post.likes.push(currentUser.id);
+            }
+            localStorage.setItem('posts', JSON.stringify(posts));
             renderUnifiedFeed();
-        }).subscribe(async (s) => { if(s==='SUBSCRIBED') await presenceChannel.track({ name: currentUser.name }); });
-    }
+        }
+    };
     
-    function renderStories() {
-        const container = document.getElementById('storiesContainer');
-        let html = `<div class="story-item" onclick="changeProfilePicture()"><img src="${getAvatar(currentUser.id)}" class="story-avatar"><span style="font-size:11px;">حسابي</span></div>`;
-        const onlineList = allEmployees.filter(e=>e.id!==currentUser.id && onlineUsers.has(e.id)).slice(0,8);
-        onlineList.forEach(e => { html += `<div class="story-item" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatar(e.id)}" class="story-avatar"><div class="online-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`; });
-        container.innerHTML = html;
-    }
+    window.sharePostToGroup = function(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const post = posts.find(p => p.id == postId);
+        if(post) {
+            addMessage('group', currentUser.id, `📢 منشور: ${post.text}`);
+            showNotif('تمت المشاركة في المجموعة العامة');
+            renderUnifiedFeed();
+        }
+    };
     
-    // ------------------------------------ دوال الدردشة ------------------------------------
-    window.openChat = async (id, name) => {
+    window.deletePost = function(postId) {
+        if(confirm('حذف المنشور؟')) {
+            let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            posts = posts.filter(p => p.id != postId);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            renderUnifiedFeed();
+            showNotif('تم حذف المنشور', '🗑️');
+        }
+    };
+    
+    // دوال الدردشة
+    window.openChat = async function(id, name) {
         activeChat = { id, name };
         currentChatId = id === 'group' ? 'group' : [currentUser.id, id].sort().join('_');
         addToActiveChats(currentChatId);
@@ -867,53 +778,175 @@
         document.getElementById('chatScreen').style.display = 'flex';
         document.getElementById('chatName').innerText = name;
         document.getElementById('chatAvatar').src = getAvatar(id);
-        await fetchMessages(currentChatId);
+        renderMessages();
         renderUnifiedFeed();
     };
-    document.getElementById('closeChatBtn').onclick = () => { document.getElementById('chatScreen').style.display = 'none'; document.getElementById('app').style.display = 'flex'; activeChat = null; renderUnifiedFeed(); };
     
-    async function fetchMessages(chatId) {
-        const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+    function renderMessages() {
+        if(!currentChatId) return;
+        const msgs = getMessages(currentChatId);
         const area = document.getElementById('messagesArea');
-        if(!data?.length) { area.innerHTML = '<div style="text-align:center;padding:20px;">✨ أرسل رسالة</div>'; return; }
-        area.innerHTML = data.map(m => {
-            const isMine = m.sender === currentUser.id;
-            return `<div class="message ${isMine ? 'sent' : 'received'}"><div class="bubble">${escapeHtml(m.text||'')}</div><div style="font-size:10px;color:gray;">${new Date(m.created_at).toLocaleTimeString()}</div></div>`;
+        if(!msgs.length) { 
+            area.innerHTML = '<div style="text-align:center;padding:20px;">✨ أرسل رسالة</div>'; 
+            return; 
+        }
+        area.innerHTML = msgs.map(m => {
+            const isMine = m.sender == currentUser.id;
+            let senderName = '';
+            if(currentChatId === 'group' && !isMine) {
+                const sender = allEmployees.find(e => e.id == m.sender);
+                senderName = `<div style="font-size:11px;color:var(--primary);">${sender?.name || 'مستخدم'}</div>`;
+            }
+            return `<div class="message ${isMine ? 'sent' : 'received'}">${senderName}<div class="bubble">${escapeHtml(m.text)}</div><div style="font-size:10px;color:gray;">${new Date(m.created_at).toLocaleTimeString()}</div></div>`;
         }).join('');
         area.scrollTop = area.scrollHeight;
     }
     
-    async function sendMessage() {
+    function sendMessage() {
         const input = document.getElementById('msgInput');
         if(!input.value.trim() || !activeChat) return;
-        await supabase.from('messages').insert({ chat_id: currentChatId, sender: currentUser.id, text: input.value, created_at: new Date().toISOString() });
+        addMessage(currentChatId, currentUser.id, input.value);
         input.value = '';
-        await fetchMessages(currentChatId);
+        renderMessages();
+        // إشعار للمتلقي
+        if(currentChatId !== 'group') {
+            const otherId = currentChatId.split('_').find(id => id != currentUser.id);
+            if(otherId) {
+                incrementUnread(currentChatId, currentUser.id);
+            }
+        }
         renderUnifiedFeed();
     }
-    document.getElementById('sendMsgBtn').onclick = sendMessage;
-    document.getElementById('msgInput').onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
     
-    // ------------------------------------ دوال المكالمات (نمطية) ------------------------------------
-    document.getElementById('callAudioBtn').onclick = () => showNotif('مكالمة صوتية قريباً', '📞');
-    document.getElementById('callVideoBtn').onclick = () => showNotif('مكالمة فيديو قريباً', '📹');
-    
-    // ------------------------------------ دوال الإعدادات والإدارة ------------------------------------
-    document.getElementById('settingsIcon').onclick = () => document.getElementById('settingsModal').style.display = 'block';
-    document.getElementById('logoutIcon').onclick = () => { localStorage.clear(); location.reload(); };
-    window.changeProfilePicture = () => { alert('تغيير الصورة: سيتم تفعيله لاحقاً'); };
-    
-    function toggleAdminPanel() { 
-        const p = document.getElementById('adminPanel'); 
-        p.style.display = p.style.display==='block'?'none':'block'; 
-        if(p.style.display==='block') document.getElementById('empDeleteList').innerHTML = allEmployees.map(e => `<div style="display:flex;justify-content:space-between;margin:4px;"><span>${e.name}</span><button onclick="deleteEmployee('${e.id}')">حذف</button></div>`).join(''); 
+    function incrementUnread(chatId, senderId) {
+        if(activeChat && currentChatId === chatId) return;
+        if(senderId == currentUser.id) return;
+        addToActiveChats(chatId);
+        unreadCounts[chatId] = (unreadCounts[chatId]||0)+1;
+        localStorage.setItem('unread_counts', JSON.stringify(unreadCounts));
+        renderUnifiedFeed();
+        showNotif('📩 رسالة جديدة', '💬');
     }
-    window.addEmployee = () => { alert('تمت إضافة الموظف (CSV سيتم تنزيله)'); };
-    window.deleteEmployee = (id) => { allEmployees = allEmployees.filter(e=>e.id!==id); alert('تم الحذف'); };
-    document.getElementById('adminModalBtn').onclick = toggleAdminPanel;
     
-    // ------------------------------------ تشغيل تحميل الموظفين ------------------------------------
-    loadEmployees();
+    function renderStories() {
+        const container = document.getElementById('storiesContainer');
+        let html = `<div class="story-item" onclick="changeProfilePicture()"><img src="${getAvatar(currentUser.id)}" class="story-avatar"><span style="font-size:11px;">حسابي</span></div>`;
+        const onlineList = allEmployees.filter(e => e.id != currentUser.id && onlineUsers.has(e.id)).slice(0,8);
+        onlineList.forEach(e => { 
+            html += `<div class="story-item" onclick="openChat('${e.id}','${e.name}')"><img src="${getAvatar(e.id)}" class="story-avatar"><div class="online-dot"></div><span style="font-size:11px;">${e.name.split(' ')[0]}</span></div>`; 
+        });
+        container.innerHTML = html;
+    }
+    
+    // محاكاة المتصلين
+    function simulateOnlineUsers() {
+        setInterval(() => {
+            const randomUsers = allEmployees.filter(e => e.id != currentUser?.id).slice(0, Math.floor(Math.random() * 5) + 1);
+            onlineUsers.clear();
+            randomUsers.forEach(u => onlineUsers.add(u.id));
+            if(currentUser) {
+                renderStories();
+                renderUnifiedFeed();
+            }
+        }, 10000);
+    }
+    
+    // دوال تسجيل الدخول
+    function searchEmployees() {
+        const q = document.getElementById('loginSearch').value.trim();
+        const drop = document.getElementById('searchDropdown');
+        if(!q) { drop.style.display='none'; return; }
+        const matches = allEmployees.filter(e => e.name.includes(q));
+        drop.innerHTML = matches.map(e => `<div class="dropdown-item" onclick="selectEmployee('${e.id}')"><img src="${getAvatar(e.id)}" style="width:40px;height:40px;border-radius:50%;"><div><b>${e.name}</b><br><small>${e.job}</small></div></div>`).join('');
+        drop.style.display = 'block';
+    }
+    
+    let selectedEmp = null;
+    window.selectEmployee = function(id) {
+        selectedEmp = allEmployees.find(e => e.id == id);
+        document.getElementById('selectedEmpName').innerText = selectedEmp.name;
+        document.getElementById('searchPhase').style.display = 'none';
+        document.getElementById('credentialsPhase').style.display = 'block';
+        document.getElementById('searchDropdown').style.display = 'none';
+    };
+    
+    function startApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        if(currentUser.id == '1098107010228600') document.getElementById('adminModalBtn').style.display = 'block';
+        renderStories();
+        renderUnifiedFeed();
+        simulateOnlineUsers();
+    }
+    
+    // ربط الأحداث
+    document.getElementById('loginSearch')?.addEventListener('input', searchEmployees);
+    document.getElementById('verifyIdBtn')?.addEventListener('click', () => {
+        if(document.getElementById('passInput').value === selectedEmp.id) {
+            currentUser = selectedEmp;
+            localStorage.setItem('current_user', JSON.stringify(currentUser));
+            startApp();
+        } else alert('الرقم الوظيفي غير صحيح');
+    });
+    document.getElementById('backToSearch')?.addEventListener('click', () => {
+        document.getElementById('credentialsPhase').style.display = 'none';
+        document.getElementById('searchPhase').style.display = 'block';
+    });
+    document.getElementById('closeChatBtn')?.addEventListener('click', () => { 
+        document.getElementById('chatScreen').style.display = 'none'; 
+        document.getElementById('app').style.display = 'flex'; 
+        activeChat = null; 
+        renderUnifiedFeed(); 
+    });
+    document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('msgInput')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+    document.getElementById('settingsIcon')?.addEventListener('click', () => document.getElementById('settingsModal').style.display = 'block');
+    document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('settingsModal').style.display = 'none');
+    document.getElementById('logoutIcon')?.addEventListener('click', () => { localStorage.clear(); location.reload(); });
+    document.getElementById('adminModalBtn')?.addEventListener('click', () => {
+        const p = document.getElementById('adminPanel');
+        p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        if(p.style.display === 'block') {
+            document.getElementById('empDeleteList').innerHTML = allEmployees.map(e => `<div style="display:flex;justify-content:space-between;margin:4px;"><span>${e.name}</span><button onclick="deleteEmployee('${e.id}')">حذف</button></div>`).join('');
+        }
+    });
+    document.getElementById('addEmpBtn')?.addEventListener('click', () => {
+        const name = document.getElementById('newEmpName').value.trim();
+        const id = document.getElementById('newEmpId').value.trim();
+        const job = document.getElementById('newEmpJob').value.trim();
+        if(name && id && job) {
+            allEmployees.push({ id, name, job });
+            alert('تمت إضافة الموظف');
+            document.getElementById('newEmpName').value = '';
+            document.getElementById('newEmpId').value = '';
+            document.getElementById('newEmpJob').value = '';
+        } else alert('املأ جميع الحقول');
+    });
+    document.getElementById('changeAvatarBtn')?.addEventListener('click', () => alert('تغيير الصورة: اختر صورة من جهازك'));
+    document.getElementById('callAudioBtn')?.addEventListener('click', () => showNotif('مكالمة صوتية قريباً', '📞'));
+    document.getElementById('callVideoBtn')?.addEventListener('click', () => showNotif('مكالمة فيديو قريباً', '📹'));
+    document.getElementById('postImageInput')?.addEventListener('change', (e) => window.previewPostImage(e));
+    
+    window.deleteEmployee = function(id) {
+        allEmployees = allEmployees.filter(e => e.id != id);
+        alert('تم حذف الموظف');
+        document.getElementById('adminPanel').style.display = 'none';
+    };
+    window.changeProfilePicture = function() { alert('تغيير الصورة: سيتم تفعيله لاحقاً'); };
+    
+    // التحقق من الدخول التلقائي
+    const savedUser = localStorage.getItem('current_user');
+    if(savedUser) {
+        const user = JSON.parse(savedUser);
+        const exists = allEmployees.find(e => e.id == user.id);
+        if(exists) { 
+            currentUser = user; 
+            startApp(); 
+        }
+    }
+    
+    document.getElementById('statusBar').innerText = `✅ ${allEmployees.length} موظف`;
+})();
 </script>
 </body>
 </html>
